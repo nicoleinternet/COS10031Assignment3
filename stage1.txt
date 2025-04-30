@@ -12,7 +12,7 @@
 // R10 Message Register
 // R9,8 General Purpose
 // R11 Guess Limit
-
+// R12 Secret Code
 // Stage 1 - Game Setup
 
 // Prompt and store Codemaker Name
