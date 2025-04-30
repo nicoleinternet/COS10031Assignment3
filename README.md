@@ -8,3 +8,13 @@
 - @VandyAum
 - @nicoleinternet
 - @ekulbyrnes
+
+##### Registers
+R0, (Compare Code of Correct Pos/Col)
+R1, (Compare Code of (Correct Pos, Incorrect Col))
+R2, Codebreaker
+R3, Codebreaker
+R4, Codemaker
+R5, Codemaker
+R10, Message Register
+R9,8 General Purpose
