@@ -1,0 +1,64 @@
+// COS10031 - Computer Technology | Assessment 3
+// Vandy Aum, Marcus Mifsud, Nicole Reichert, Luke Byrnes
+// Mastermind Game - stage1.txt - Luke Byrnes
+
+// Register Assignations
+// R0, (Compare Code of Correct Pos/Col)
+// R1, (Compare Code of (Correct Pos, Incorrect Col))
+// R2, Codebreaker
+// R3, Codebreaker
+// R4, Codemaker
+// R5, Codemaker
+// R10 Message Register
+// R9,8 General Purpose
+// R11 Guess Limit
+
+// Stage 1 - Game Setup
+
+// Prompt and store Codemaker Name
+    // Set whoIsCodeMaker Query prompt to R10
+    MOV R10, #whoIsCodeMaker
+    // print whoIsCodeMaker Query from R10
+    STR R10, .WriteString
+    // Set codeMaker value to R4
+    MOV R4, #codeMaker
+    // Take input from user and store to R4
+    STR R4, .ReadString
+    // Print codeMaker value from R4
+    STR R4, .WriteString
+
+// Prompt and store CodeBreaker Name
+    // Set whoIsCodeMaker Query prompt to R10
+    MOV R10, #whoIsCodeBreaker
+    // print whoIsCodeMaker Query from R4
+    STR R10, .WriteString
+    // Set codeMaker value to R5
+    MOV R5, #codeBreaker
+    // Take input from user and store to R5
+    STR R5, .ReadString
+    // Print codeMaker value from R5
+    STR R5, .WriteString
+
+// Prompt and store GuessLimit for the session
+    // Set guessLimit Query prompt to R10
+    MOV R10, #whatIsGuessLimit
+    // Print whatIsGuessLimit from R10
+    STR R10, .WriteString
+    // Take input from user and store to R11
+    LDR R11, .InputNum
+    // Print guessLimit from R11
+    STR R11, .WriteSignedNum
+    // Stop Program.
+    HALT
+
+// Program functions:
+    // Display whoIsCodeMaker Query prompt:
+    whoIsCodeMaker: .ASCIZ "Codemaker is: "
+    // Store block of memory of 128 bytes to store the string
+    codeMaker: .BLOCK 128
+    // Display whoIsCodeMaker Query prompt:
+    whoIsCodeBreaker: .ASCIZ "\nCodebreaker is: "
+    // Store block of memory of 128 bytes to store the string
+    codeBreaker: .BLOCK 128
+    // Display guessLimit Query prompt:
+    whatIsGuessLimit: .ASCIZ "\nGuess Limit: "
