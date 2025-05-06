@@ -1,0 +1,62 @@
+// Nicole Reichert
+// Stage 4 - Query Code Entry (10% Marks)
+// Allowing the codebreak to enter codes up to
+// max number of guesses.
+querycode: // array for current query code
+
+// Output Prompt
+
+    MOV R10, #GuessUpdate
+    STR R10, .WriteString
+    MOV R10, #GuessNumberCount
+    STR R10, .WriteString
+    STR R2, .WriteUnsignedNum
+
+    // Loop begin
+    // Query for 4-peg query code
+    queryloop:
+    MOV R3, #GuessChoice
+    STR R3, .ReadString
+    LDR R3, GuessChoice // load dword in reg (automatically 4 char max)
+    // In CharCheck, we load bytes of GuessChoice and query it against
+    // ASCII codes. If we hit 0, we are successful.
+    // TODO: Handle 0x0 (empty prompt)
+    charcheck:
+    STRB R3, GuessChar // get last char
+    LSR R3,R3, #8 // move 0x down two places for ASCII, littlend
+    LDR R9, GuessChar
+    // ASCII r (0x72) g (0x67) b (0x62) y (0x79) p (0x70) c (0x63)
+    CMP R9, #0x72
+    BEQ charcheck
+    CMP R9, #0x67
+    BEQ charcheck
+    CMP R9, #0x62
+    BEQ charcheck
+    CMP R9, #0x79
+    BEQ charcheck
+    CMP R9, #0x70
+    BEQ charcheck
+    CMP R9, #0x63
+    BEQ charcheck
+    CMP R3, #0x0
+    BEQ successfulcheck
+    B fail
+HALT
+
+querycode:
+// TODO: indirect addressing
+    MOV R9, #0x4
+
+
+
+fail: //returns to input
+    MOV R0, #99999
+    HALT
+successfulcheck:
+    MOV R0, #11111
+
+GuessChoice: .BLOCK 128 // block of 128 bytes
+GuessChar: .BLOCK 128
+GuessNumberCount: .ASCIZ ", this is guess number: "
+
+
