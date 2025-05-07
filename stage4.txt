@@ -2,61 +2,97 @@
 // Stage 4 - Query Code Entry (10% Marks)
 // Allowing the codebreak to enter codes up to
 // max number of guesses.
-querycode: // array for current query code
+// Register Assignations
+// R0, (Compare Code of Correct Pos/Col)
+// R1, (Compare Code of (Correct Pos, Incorrect Col))
+// R2, Codebreaker
+// R3, Codebreaker
+// R4, Codemaker
+// R5, Codemaker
+// R10 Message Register
+// R9 code address
+//R8 Word counter
+// R11 Guess Limit
+// R12 Secret Code
+// array for current query code
 
-// Output Prompt
+queryloop:
+// Check if we are at guess limit (guessLimit,currentGuessCount) in R2/3
+MOV R3, #0
+MOV R2, #0
+LDR R3, currentGuessCount
+ADD R3, R3, #1
+LDR R2, guessLimit
+CMP R3,R2
+BGT break
+MOV R3, #0
+MOV R2, #0
+// Print output/input now we've checked guess counts.
+// Print 'what is your guess'
+MOV R10, #GuessUpdate
+STR R10, .WriteString
+MOV R3, #GuessChoice
+// Get 4-char guess (is unbound)
+STR R3, .ReadString
+LDR R3, GuessChoice
+// Update count of guesses going forward
+MOV R3, #0
+LDR R3, currentGuessCount
+ADD R3, R3, #1
+STR R3, currentGuessCount
+MOV R3, #0
+// Present count of addresses to output
+MOV R10, #codeBreaker
+STR R10, .WriteString
+MOV R10, #GuessNumberCount
+STR R10, .WriteString
+LDR R10, currentGuessCount
+STR R10, .WriteUnsignedNum
 
-    MOV R10, #GuessUpdate
-    STR R10, .WriteString
-    MOV R10, #GuessNumberCount
-    STR R10, .WriteString
-    STR R2, .WriteUnsignedNum
+// #GuessChoice will now have a 4 char guess.
+// Iterate through it like an array in charcheck.
+; ASCII r (0x72) g (0x67) b (0x62) y (0x79) p (0x70) c (0x63)
+charcheck:
+// Load address of GuessChoice
+MOV R9, #GuessChoice
+// Indexed address of R9 (GuessChoice + R3)
+LDRB R2, [R9 + R3]
+ADD R3, R3, #1
+// Are we thru the loop and OK to take a guess?
+CMP R3, #5
+// ASCII compares
+BEQ takeguess
+CMP R2, #0x72
+BEQ charcheck
+CMP R2, #0x67
+BEQ charcheck
+CMP R2, #0x62
+BEQ charcheck
+CMP R2, #0x79
+BEQ charcheck
+CMP R2, #0x63
+BEQ charcheck
+CMP R2,#0x63
+BEQ charcheck
+// If our loaded byte doesn't equal any of these, break unconditionally
+B break
 
-    // Loop begin
-    // Query for 4-peg query code
-    queryloop:
-    MOV R3, #GuessChoice
-    STR R3, .ReadString
-    LDR R3, GuessChoice // load dword in reg (automatically 4 char max)
-    // In CharCheck, we load bytes of GuessChoice and query it against
-    // ASCII codes. If we hit 0, we are successful.
-    // TODO: Handle 0x0 (empty prompt)
-    charcheck:
-    STRB R3, GuessChar // get last char
-    LSR R3,R3, #8 // move 0x down two places for ASCII, littlend
-    LDR R9, GuessChar
-    // ASCII r (0x72) g (0x67) b (0x62) y (0x79) p (0x70) c (0x63)
-    CMP R9, #0x72
-    BEQ charcheck
-    CMP R9, #0x67
-    BEQ charcheck
-    CMP R9, #0x62
-    BEQ charcheck
-    CMP R9, #0x79
-    BEQ charcheck
-    CMP R9, #0x70
-    BEQ charcheck
-    CMP R9, #0x63
-    BEQ charcheck
-    CMP R3, #0x0
-    BEQ successfulcheck
-    B fail
+break: //returns to input
+MOV R0, #99999
 HALT
-
-querycode:
-// TODO: indirect addressing
-    MOV R9, #0x4
-
-
-
-fail: //returns to input
-    MOV R0, #99999
-    HALT
-successfulcheck:
-    MOV R0, #11111
+takeguess:
+; We now have a valid guess, let's branch it in the next stage!
+MOV R0, #11111
+B queryloop
+HALT
 
 GuessChoice: .BLOCK 128 // block of 128 bytes
 GuessChar: .BLOCK 128
 GuessNumberCount: .ASCIZ ", this is guess number: "
+GuessUpdate: .ASCIZ "What is your guess as codebreaker? \n"
+// codeBreaker is BYTE to store a string in practice (stage1)
+codeBreaker: .ASCIZ "sample"
+guessLimit: .WORD 5
+currentGuessCount: .WORD 0
 
 
