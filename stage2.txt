@@ -78,7 +78,7 @@ code:
 //secret code function
 getcode:
     MOV R12, #myCode
-    STR R12, .ReadString
+    STR R12, .ReadSecret
 //This is storing number 0 in the R8
 //This is storing the address of R12 content (input) to R9
 firstLetter: LDRB R9, [R12]
