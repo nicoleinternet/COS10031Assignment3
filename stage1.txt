@@ -46,6 +46,7 @@
     STR R10, .WriteString
     // Take input from user and store to R11
     LDR R11, .InputNum
+    STR R11, #guessLimit
     // Print guessLimit from R11
     STR R11, .WriteSignedNum
     // Stop Program.
@@ -62,3 +63,5 @@
     codeBreaker: .BLOCK 128
     // Display guessLimit Query prompt:
     whatIsGuessLimit: .ASCIZ "\nGuess Limit: "
+    // Store the guesslimit as a label, 0 as default
+    guessLimit: .WORD 0
