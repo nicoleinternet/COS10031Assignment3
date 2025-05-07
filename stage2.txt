@@ -1,173 +1,190 @@
-  1|// COS10031 - Computer Technology | Assessment 3
-  2|// Vandy Aum, Marcus Mifsud, Nicole Reichert, Luke Byrnes
-  3|// Mastermind Game - stage1.txt - Luke Byrnes
-  4|// Register Assignations
-  5|// R0, (Compare Code of Correct Pos/Col)
-  6|// R1, (Compare Code of (Correct Pos, Incorrect Col))
-  7|// R2, Codebreaker
-  8|// R3, Codebreaker
-  9|// R4, Codemaker
- 10|// R5, Codemaker
- 11|// R10 Message Register
- 12|// R9 code address
- 13|//R8 Word counter
- 14|// R11 Guess Limit
- 15|// R12 Secret Code
- 16|// Stage 1 - Game Setup
- 17|// Prompt and store Codemaker Name
- 18|// Set whoIsCodeMaker Query prompt to R10
- 19|      MOV R10, #whoIsCodeMaker
- 20|// print whoIsCodeMaker Query from R10
- 21|      STR R10, .WriteString
- 22|// Set codeMaker value to R4
- 23|      MOV R4, #codeMaker
- 24|// Take input from user and store to R4
- 25|      STR R4, .ReadString
- 26|// Print codeMaker value from R4
- 27|      STR R4, .WriteString
- 28|// Prompt and store CodeBreaker Name
- 29|// Set whoIsCodeMaker Query prompt to R10
- 30|      MOV R10, #whoIsCodeBreaker
- 31|// print whoIsCodeMaker Query from R4
- 32|      STR R10, .WriteString
- 33|// Set codeMaker value to R5
- 34|      MOV R5, #codeBreaker
- 35|// Take input from user and store to R5
- 36|      STR R5, .ReadString
- 37|// Print codeMaker value from R5
- 38|      STR R5, .WriteString
- 39|// Prompt and store GuessLimit for the session
- 40|// Set guessLimit Query prompt to R10
- 41|      MOV R10, #whatIsGuessLimit
- 42|// Print whatIsGuessLimit from R10
- 43|      STR R10, .WriteString
- 44|// Take input from user and store to R11
- 45|      LDR R11, .InputNum
- 46|// Print guessLimit from R11
- 47|      STR R11, .WriteSignedNum
- 48|// Stop Program.
- 49|//Creating the get code
- 50|      MOV R10, #promptRule
- 51|      STR R10, .WriteString
- 52|      MOV R10, #colorChoice
- 53|      STR R10, .WriteString
- 54|      STR R4, .WriteString
- 55|      MOV R10, #gettingCode
- 56|      STR R10, .WriteString
- 57|      b getcode
- 58|code:                   //CONTINUE CODE HERE THIS IS JUST A TEST FOR NOW
- 59|      MOV R10, #message
- 60|      STR R10, .WriteString
- 61|      HALT
- 62|// Program functions:
- 63|//secret code function
- 64|getcode:
- 65|      MOV R12, #myCode
- 66|      STR R12, .ReadString
- 67|//This is storing number 0 in the R8
- 68|//This is storing the address of R12 content (input) to R9
- 69|firstLetter: LDRB R9, [R12]
- 70|//The CMP is for checking to see if the input is 4 character and the way this CMP is used it is going to check for 4 char no more and no less
- 71|//For this CMP check to see if any code has been entered
- 72|      CMP R9, #0
- 73|      BEQ getcode
- 74|      STR R9, .WriteChar
- 75|      CMP R9, #0x72     //check if the character is r(red)
- 76|      BEQ secondLetter
- 77|      CMP R9, #0x67     //check if the character is g(green)
- 78|      BEQ secondLetter
- 79|      CMP R9, #0x62     //check if the character is b(blue)
- 80|      BEQ secondLetter
- 81|      CMP R9, #0x79     //check if the character is y(yellow)
- 82|      BEQ secondLetter
- 83|      CMP R9, #0x70     //check if the character is p(purple)
- 84|      BEQ secondLetter
- 85|      CMP R9, #0x63     //check if the character is c(cyan)
- 86|      BEQ secondLetter
- 87|      b notOption
- 88|secondLetter: LDRB R9, [R12, #1] //one character is one byte so when adding one byte to R12 it will be the address of the next character
- 89|//This CMP is checking if there is a second character, it would also mean that only 1 char has been entered so it will loop back to the input
- 90|      CMP R9, #0
- 91|      BEQ getcode
- 92|      STR R9, .WriteChar
- 93|      CMP R9, #0x72     //check if the character is r(red)
- 94|      BEQ thirdLetter
- 95|      CMP R9, #0x67     //check if the character is g(green)
- 96|      BEQ thirdLetter
- 97|      CMP R9, #0x62     //check if the character is b(blue)
- 98|      BEQ thirdLetter
- 99|      CMP R9, #0x79     //check if the character is y(yellow)
-100|      BEQ thirdLetter
-101|      CMP R9, #0x70     //check if the character is p(purple)
-102|      BEQ thirdLetter
-103|      CMP R9, #0x63     //check if the character is c(cyan)
-104|      BEQ thirdLetter
-105|      b notOption
-106|thirdLetter: LDRB R9, [R12, #2]
-107|//This CMP is checking for the third character, it would also mean that only 2 char has been entered so it will loop back to the input
-108|      CMP R9, #0
-109|      BEQ getcode
-110|      STR R9, .WriteChar
-111|      CMP R9, #0x72     //check if the character is r(red)
-112|      BEQ fourthLetter
-113|      CMP R9, #0x67     //check if the character is g(green)
-114|      BEQ fourthLetter
-115|      CMP R9, #0x62     //check if the character is b(blue)
-116|      BEQ fourthLetter
-117|      CMP R9, #0x79     //check if the character is y(yellow)
-118|      BEQ fourthLetter
-119|      CMP R9, #0x70     //check if the character is p(purple)
-120|      BEQ fourthLetter
-121|      CMP R9, #0x63     //check if the character is c(cyan)
-122|      BEQ fourthLetter
-123|      b notOption
-124|fourthLetter: LDRB R9, [R12, #3]
-125|//This CMP would check for the fourth char, it would also mean that only 3 char has been entered so it will loop back to the input and if 
-126|//fourth char exist it would continue the program meaning that 4 char has been enterd
-127|      CMP R9, #0
-128|      BEQ getcode
-129|      STR R9, .WriteChar
-130|      CMP R9, #0x72     //check if the character is r(red)
-131|      BEQ fifthLetter
-132|      CMP R9, #0x67     //check if the character is g(green)
-133|      BEQ fifthLetter
-134|      CMP R9, #0x62     //check if the character is b(blue)
-135|      BEQ fifthLetter
-136|      CMP R9, #0x79     //check if the character is y(yellow)
-137|      BEQ fifthLetter
-138|      CMP R9, #0x70     //check if the character is p(purple)
-139|      BEQ fifthLetter
-140|      CMP R9, #0x63     //check if the character is c(cyan)
-141|      BEQ fifthLetter
-142|      b notOption
-143|fifthLetter: LDRB R9, [R12, #4] //This is only used to check if the input is over 4 char
-144|      STR R9, .WriteChar
-145|      CMP R9, #0
-146|      BNE overLimit
-147|      b code
-148|notOption: 
-149|      MOV R10, #errormessage1
-150|      STR R10, .WriteString
-151|      b getcode
-152|overLimit:
-153|      MOV R10, #errormessage2
-154|      STR R10, .WriteString
-155|      b getcode
-156|// Display whoIsCodeMaker Query prompt:
-157|whoIsCodeMaker: .ASCIZ "Codemaker is: "
-158|// Store block of memory of 128 bytes to store the string
-159|codeMaker: .BLOCK 128
-160|// Display whoIsCodeMaker Query prompt:
-161|whoIsCodeBreaker: .ASCIZ "\nCodebreaker is: "
-162|// Store block of memory of 128 bytes to store the string
-163|codeBreaker: .BLOCK 128
-164|// Display guessLimit Query prompt:
-165|whatIsGuessLimit: .ASCIZ "\nGuess Limit: "
-166|//Display the prompt for user to input the secret code
-167|gettingCode: .ASCIZ " enter the Code: "
-168|promptRule: .ASCIZ "\nType in 4 color for the secret code"
-169|colorChoice: .ASCIZ "\n(r-RED, g-GREEN, b-BLUE, y-YELLOW, p-PURPLE, c-CYAN)\n"
-170|myCode: .BLOCK 128
-171|errormessage1: .ASCIZ "\nOne of the character you have entered is not within the option given!!!\n"
-172|errormessage2: .ASCIZ "\nToo many character!!!\n"
-173|message: .ASCIZ "\ntesting"
+///////////////////////////////////////////////////////////////
+// COS10031 - Computer Technology | Assessment 3
+// Vandy Aum, Marcus Mifsud, Nicole Reichert, Luke Byrnes
+//  ___  ___          _                      _           _ 
+//  |  \/  |         | |                    (_)         | |
+//  | .  . | __ _ ___| |_ ___ _ __ _ __ ___  _ _ __   __| |
+//  | |\/| |/ _` / __| __/ _ \ '__| '_ ` _ \| | '_ \ / _` |
+//  | |  | | (_| \__ \ ||  __/ |  | | | | | | | | | | (_| |
+//  \_|  |_/\__,_|___/\__\___|_|  |_| |_| |_|_|_| |_|\__,_|                                                  
+//
+// Register Assignations
+    // R0, (Compare Code of Correct Pos/Col)
+    // R1, (Compare Code of (Correct Pos, Incorrect Col))
+    // R2, Codebreaker
+    // R3, Codebreaker
+    // R4, Codemaker
+    // R5, Codemaker
+    // R10 Message Register
+    // R9 code address
+    // R8 Word counter
+    // R11 Guess Limit
+    // R12 Secret Code
+///////////////////////////////////////////////////////////////
+// Stage 1 - Game Setup - Luke Byrnes
+//
+// Prompt and store Codemaker Name
+    // Set whoIsCodeMaker Query prompt to R10
+    MOV R10, #whoIsCodeMaker
+    // print whoIsCodeMaker Query from R10
+    STR R10, .WriteString
+    // Set codeMaker value to R4
+    MOV R4, #codeMaker
+    // Take input from user and store to R4
+    STR R4, .ReadString
+    // Print codeMaker value from R4
+    STR R4, .WriteString
+//
+// Prompt and store CodeBreaker Name
+    // Set whoIsCodeMaker Query prompt to R10
+    MOV R10, #whoIsCodeBreaker
+    // print whoIsCodeMaker Query from R4
+    STR R10, .WriteString
+    // Set codeMaker value to R5
+    MOV R5, #codeBreaker
+    // Take input from user and store to R5
+    STR R5, .ReadString
+    // Print codeMaker value from R5
+    STR R5, .WriteString
+//
+// Prompt and store GuessLimit for the session
+    // Set guessLimit Query prompt to R10
+    MOV R10, #whatIsGuessLimit
+    // Print whatIsGuessLimit from R10
+    STR R10, .WriteString
+    // Take input from user and store to R11
+    LDR R11, .InputNum
+    // Print guessLimit from R11
+    STR R11, .WriteSignedNum
+    // Stop Program.
+    // HALT
+//
+///////////////////////////////////////////////////////////////
+// Stage 2 - A Code Entry Function
+//Creating the get code
+    MOV R10, #promptRule
+    STR R10, .WriteString
+    MOV R10, #colorChoice
+    STR R10, .WriteString
+    STR R4, .WriteString
+    MOV R10, #gettingCode
+    STR R10, .WriteString
+    b getcode
+code:
+    MOV R10, #message
+    STR R10, .WriteString
+    HALT
+// Program functions:
+//secret code function
+getcode:
+    MOV R12, #myCode
+    STR R12, .ReadString
+//This is storing number 0 in the R8
+//This is storing the address of R12 content (input) to R9
+firstLetter: LDRB R9, [R12]
+//The CMP is for checking to see if the input is 4 character and the way this CMP is used it is going to check for 4 char no more and no less
+//For this CMP check to see if any code has been entered
+    CMP R9, #0
+    BEQ getcode
+    STR R9, .WriteChar
+    CMP R9, #0x72     //check if the character is r(red)
+    BEQ secondLetter
+    CMP R9, #0x67     //check if the character is g(green)
+    BEQ secondLetter
+    CMP R9, #0x62     //check if the character is b(blue)
+    BEQ secondLetter
+    CMP R9, #0x79     //check if the character is y(yellow)
+    BEQ secondLetter
+    CMP R9, #0x70     //check if the character is p(purple)
+    BEQ secondLetter
+    CMP R9, #0x63     //check if the character is c(cyan)
+    BEQ secondLetter
+    b notOption
+secondLetter: LDRB R9, [R12, #1] //one character is one byte so when adding one byte to R12 it will be the address of the next character
+//This CMP is checking if there is a second character, it would also mean that only 1 char has been entered so it will loop back to the input
+    CMP R9, #0
+    BEQ getcode
+    STR R9, .WriteChar
+    CMP R9, #0x72     //check if the character is r(red)
+    BEQ thirdLetter
+    CMP R9, #0x67     //check if the character is g(green)
+    BEQ thirdLetter
+    CMP R9, #0x62     //check if the character is b(blue)
+    BEQ thirdLetter
+    CMP R9, #0x79     //check if the character is y(yellow)
+    BEQ thirdLetter
+    CMP R9, #0x70     //check if the character is p(purple)
+    BEQ thirdLetter
+    CMP R9, #0x63     //check if the character is c(cyan)
+    BEQ thirdLetter
+    b notOption
+thirdLetter: LDRB R9, [R12, #2]
+//This CMP is checking for the third character, it would also mean that only 2 char has been entered so it will loop back to the input
+    CMP R9, #0
+    BEQ getcode
+    STR R9, .WriteChar
+    CMP R9, #0x72     //check if the character is r(red)
+    BEQ fourthLetter
+    CMP R9, #0x67     //check if the character is g(green)
+    BEQ fourthLetter
+    CMP R9, #0x62     //check if the character is b(blue)
+    BEQ fourthLetter
+    CMP R9, #0x79     //check if the character is y(yellow)
+    BEQ fourthLetter
+    CMP R9, #0x70     //check if the character is p(purple)
+    BEQ fourthLetter
+    CMP R9, #0x63     //check if the character is c(cyan)
+    BEQ fourthLetter
+    b notOption
+fourthLetter: LDRB R9, [R12, #3]
+//This CMP would check for the fourth char, it would also mean that only 3 char has been entered so it will loop back to the input and if 
+//fourth char exist it would continue the program meaning that 4 char has been enterd
+    CMP R9, #0
+    BEQ getcode
+    STR R9, .WriteChar
+    CMP R9, #0x72     //check if the character is r(red)
+    BEQ fifthLetter
+    CMP R9, #0x67     //check if the character is g(green)
+    BEQ fifthLetter
+    CMP R9, #0x62     //check if the character is b(blue)
+    BEQ fifthLetter
+    CMP R9, #0x79     //check if the character is y(yellow)
+    BEQ fifthLetter
+    CMP R9, #0x70     //check if the character is p(purple)
+    BEQ fifthLetter
+    CMP R9, #0x63     //check if the character is c(cyan)
+    BEQ fifthLetter
+    b notOption
+fifthLetter: LDRB R9, [R12, #4] //This is only used to check if the input is over 4 char
+    STR R9, .WriteChar
+    CMP R9, #0
+    BNE overLimit
+    b code
+notOption: 
+    MOV R10, #errormessage1
+    STR R10, .WriteString
+    b getcode
+overLimit:
+    MOV R10, #errormessage2
+    STR R10, .WriteString
+    b getcode
+///////////////////////////////////////////////////////////////
+//
+// Display whoIsCodeMaker Query prompt:
+whoIsCodeMaker: .ASCIZ "Codemaker is: "
+// Store block of memory of 128 bytes to store the string
+codeMaker: .BLOCK 128
+// Display whoIsCodeMaker Query prompt:
+whoIsCodeBreaker: .ASCIZ "\nCodebreaker is: "
+// Store block of memory of 128 bytes to store the string
+codeBreaker: .BLOCK 128
+// Display guessLimit Query prompt:
+whatIsGuessLimit: .ASCIZ "\nGuess Limit: "
+//Display the prompt for user to input the secret code
+gettingCode: .ASCIZ " enter the Code: "
+promptRule: .ASCIZ "\nType in 4 color for the secret code"
+colorChoice: .ASCIZ "\n(r-RED, g-GREEN, b-BLUE, y-YELLOW, p-PURPLE, c-CYAN)\n"
+myCode: .BLOCK 128
+errormessage1: .ASCIZ "\nOne of the character you have entered is not within the option given!!!\n"
+errormessage2: .ASCIZ "\nToo many character!!!\n"
+message: .ASCIZ "\ntesting"
