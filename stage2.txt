@@ -9,12 +9,12 @@
 //  \_|  |_/\__,_|___/\__\___|_|  |_| |_| |_|_|_| |_|\__,_|                                                  
 //
 // Register Assignations
-    // R0, (Compare Code of Correct Pos/Col)
-    // R1, (Compare Code of (Correct Pos, Incorrect Col))
-    // R2, Codebreaker
-    // R3, Codebreaker
-    // R4, Codemaker
-    // R5, Codemaker
+    // R0 (Compare Code of Correct Pos/Col)
+    // R1 (Compare Code of (Correct Pos, Incorrect Col))
+    // R2
+    // R3
+    // R4 Codemaker Name
+    // R5 Codebreaker Name
     // R10 Message Register
     // R9 code address
     // R8 Word counter
@@ -38,7 +38,7 @@
 // Prompt and store CodeBreaker Name
     // Set whoIsCodeMaker Query prompt to R10
     MOV R10, #whoIsCodeBreaker
-    // print whoIsCodeMaker Query from R4
+    // print whoIsCodeMaker Query from R10
     STR R10, .WriteString
     // Set codeMaker value to R5
     MOV R5, #codeBreaker
@@ -56,118 +56,113 @@
     LDR R11, .InputNum
     // Print guessLimit from R11
     STR R11, .WriteSignedNum
-    // Stop Program.
-    // HALT
-//
 ///////////////////////////////////////////////////////////////
-// Stage 2 - A Code Entry Function
-//Creating the get code
-    MOV R10, #promptRule
+// Stage 2 - A Code Entry Function - Vandy Aum
+// Display request for code entry
+    MOV R10, #promptRuleMsg
     STR R10, .WriteString
-    MOV R10, #colorChoice
+    MOV R10, #colorChoiceMsg
     STR R10, .WriteString
     STR R4, .WriteString
-    MOV R10, #gettingCode
+    MOV R10, #requestCodeMsg
     STR R10, .WriteString
     b getcode
-code:
-    MOV R10, #message
-    STR R10, .WriteString
-    HALT
-// Program functions:
-//secret code function
+// Read Secret Code
 getcode:
     MOV R12, #myCode
     STR R12, .ReadSecret
-//This is storing number 0 in the R8
-//This is storing the address of R12 content (input) to R9
-firstLetter: LDRB R9, [R12]
-//The CMP is for checking to see if the input is 4 character and the way this CMP is used it is going to check for 4 char no more and no less
-//For this CMP check to see if any code has been entered
-    CMP R9, #0
-    BEQ getcode
-    STR R9, .WriteChar
-    CMP R9, #0x72     //check if the character is r(red)
-    BEQ secondLetter
-    CMP R9, #0x67     //check if the character is g(green)
-    BEQ secondLetter
-    CMP R9, #0x62     //check if the character is b(blue)
-    BEQ secondLetter
-    CMP R9, #0x79     //check if the character is y(yellow)
-    BEQ secondLetter
-    CMP R9, #0x70     //check if the character is p(purple)
-    BEQ secondLetter
-    CMP R9, #0x63     //check if the character is c(cyan)
-    BEQ secondLetter
-    b notOption
-secondLetter: LDRB R9, [R12, #1] //one character is one byte so when adding one byte to R12 it will be the address of the next character
-//This CMP is checking if there is a second character, it would also mean that only 1 char has been entered so it will loop back to the input
-    CMP R9, #0
-    BEQ getcode
-    STR R9, .WriteChar
-    CMP R9, #0x72     //check if the character is r(red)
-    BEQ thirdLetter
-    CMP R9, #0x67     //check if the character is g(green)
-    BEQ thirdLetter
-    CMP R9, #0x62     //check if the character is b(blue)
-    BEQ thirdLetter
-    CMP R9, #0x79     //check if the character is y(yellow)
-    BEQ thirdLetter
-    CMP R9, #0x70     //check if the character is p(purple)
-    BEQ thirdLetter
-    CMP R9, #0x63     //check if the character is c(cyan)
-    BEQ thirdLetter
-    b notOption
-thirdLetter: LDRB R9, [R12, #2]
-//This CMP is checking for the third character, it would also mean that only 2 char has been entered so it will loop back to the input
-    CMP R9, #0
-    BEQ getcode
-    STR R9, .WriteChar
-    CMP R9, #0x72     //check if the character is r(red)
-    BEQ fourthLetter
-    CMP R9, #0x67     //check if the character is g(green)
-    BEQ fourthLetter
-    CMP R9, #0x62     //check if the character is b(blue)
-    BEQ fourthLetter
-    CMP R9, #0x79     //check if the character is y(yellow)
-    BEQ fourthLetter
-    CMP R9, #0x70     //check if the character is p(purple)
-    BEQ fourthLetter
-    CMP R9, #0x63     //check if the character is c(cyan)
-    BEQ fourthLetter
-    b notOption
-fourthLetter: LDRB R9, [R12, #3]
-//This CMP would check for the fourth char, it would also mean that only 3 char has been entered so it will loop back to the input and if 
-//fourth char exist it would continue the program meaning that 4 char has been enterd
-    CMP R9, #0
-    BEQ getcode
-    STR R9, .WriteChar
-    CMP R9, #0x72     //check if the character is r(red)
-    BEQ fifthLetter
-    CMP R9, #0x67     //check if the character is g(green)
-    BEQ fifthLetter
-    CMP R9, #0x62     //check if the character is b(blue)
-    BEQ fifthLetter
-    CMP R9, #0x79     //check if the character is y(yellow)
-    BEQ fifthLetter
-    CMP R9, #0x70     //check if the character is p(purple)
-    BEQ fifthLetter
-    CMP R9, #0x63     //check if the character is c(cyan)
-    BEQ fifthLetter
-    b notOption
-fifthLetter: LDRB R9, [R12, #4] //This is only used to check if the input is over 4 char
-    STR R9, .WriteChar
-    CMP R9, #0
-    BNE overLimit
-    b code
-notOption: 
-    MOV R10, #errormessage1
+// Validate Secret Code
+    // First Character
+        // Store the address of the first byte of R12 content (secret code) in R9
+        firstLetter: LDRB R9, [R12]
+        CMP R9, #0        //check if a character was not entered
+        BEQ getcode
+        CMP R9, #0x72     //check if the character is r(red)
+        BEQ secondLetter
+        CMP R9, #0x67     //check if the character is g(green)
+        BEQ secondLetter
+        CMP R9, #0x62     //check if the character is b(blue)
+        BEQ secondLetter
+        CMP R9, #0x79     //check if the character is y(yellow)
+        BEQ secondLetter
+        CMP R9, #0x70     //check if the character is p(purple)
+        BEQ secondLetter
+        CMP R9, #0x63     //check if the character is c(cyan)
+        BEQ secondLetter
+        b invalidChar     //branch to 'invalidChar' if the character was not matched by any of the above checks
+    // Second Character
+        // Store the address of the second byte of R12 content (secret code) in R9
+        //one character is one byte so when adding one byte to R12 it will be the address of the next character
+        secondLetter: LDRB R9, [R12, #1] 
+        CMP R9, #0        //check if a character was not entered
+        BEQ getcode
+        CMP R9, #0x72     //check if the character is r(red)
+        BEQ thirdLetter
+        CMP R9, #0x67     //check if the character is g(green)
+        BEQ thirdLetter
+        CMP R9, #0x62     //check if the character is b(blue)
+        BEQ thirdLetter
+        CMP R9, #0x79     //check if the character is y(yellow)
+        BEQ thirdLetter
+        CMP R9, #0x70     //check if the character is p(purple)
+        BEQ thirdLetter
+        CMP R9, #0x63     //check if the character is c(cyan)
+        BEQ thirdLetter
+        b invalidChar     //branch to 'invalidChar' if the character was not matched by any of the above checks
+    // Third Character
+        // Store the address of the third byte of R12 content (secret code) in R9
+        thirdLetter: LDRB R9, [R12, #2]
+        CMP R9, #0        //check if a character was not entered
+        BEQ getcode
+        CMP R9, #0x72     //check if the character is r(red)
+        BEQ fourthLetter
+        CMP R9, #0x67     //check if the character is g(green)
+        BEQ fourthLetter
+        CMP R9, #0x62     //check if the character is b(blue)
+        BEQ fourthLetter
+        CMP R9, #0x79     //check if the character is y(yellow)
+        BEQ fourthLetter
+        CMP R9, #0x70     //check if the character is p(purple)
+        BEQ fourthLetter
+        CMP R9, #0x63     //check if the character is c(cyan)
+        BEQ fourthLetter
+        b invalidChar     //branch to 'invalidChar' if the character was not matched by any of the above checks
+    // Fourth Character
+        // Store the address of the fourth byte of R12 content (secret code) in R9
+        fourthLetter: LDRB R9, [R12, #3]
+        CMP R9, #0        //check if a character was not entered
+        BEQ getcode
+        CMP R9, #0x72     //check if the character is r(red)
+        BEQ fifthLetter
+        CMP R9, #0x67     //check if the character is g(green)
+        BEQ fifthLetter
+        CMP R9, #0x62     //check if the character is b(blue)
+        BEQ fifthLetter
+        CMP R9, #0x79     //check if the character is y(yellow)
+        BEQ fifthLetter
+        CMP R9, #0x70     //check if the character is p(purple)
+        BEQ fifthLetter
+        CMP R9, #0x63     //check if the character is c(cyan)
+        BEQ fifthLetter
+        b invalidChar     //branch to 'invalidChar' if the character was not matched by any of the above checks
+    // Fifth Character
+        // Store the address of the fifth byte of R12 content (secret code) in R9
+        fifthLetter: LDRB R9, [R12, #4] //This is only used to check if the input is over 4 char
+        CMP R9, #0      //check if a character was not entered
+        BNE overLimit   //if a character was entered branch to 'overLimit'
+        BEQ code        //if a character was not entered branch to 'code'
+invalidChar:
+    MOV R10, #errorMsg1
     STR R10, .WriteString
     b getcode
 overLimit:
-    MOV R10, #errormessage2
+    MOV R10, #errorMsg2
     STR R10, .WriteString
     b getcode
+code: // continue stage 3 from here
+    MOV R10, #testMsg
+    STR R10, .WriteString
+    HALT
 ///////////////////////////////////////////////////////////////
 //
 // Display whoIsCodeMaker Query prompt:
@@ -181,10 +176,10 @@ codeBreaker: .BLOCK 128
 // Display guessLimit Query prompt:
 whatIsGuessLimit: .ASCIZ "\nGuess Limit: "
 //Display the prompt for user to input the secret code
-gettingCode: .ASCIZ " enter the Code: "
-promptRule: .ASCIZ "\nType in 4 color for the secret code"
-colorChoice: .ASCIZ "\n(r-RED, g-GREEN, b-BLUE, y-YELLOW, p-PURPLE, c-CYAN)\n"
+requestCodeMsg: .ASCIZ " enter the Code: "
+promptRuleMsg: .ASCIZ "\nType in 4 colors for the secret code"
+colorChoiceMsg: .ASCIZ "\n(r-RED, g-GREEN, b-BLUE, y-YELLOW, p-PURPLE, c-CYAN)\n"
 myCode: .BLOCK 128
-errormessage1: .ASCIZ "\nOne of the character you have entered is not within the option given!!!\n"
-errormessage2: .ASCIZ "\nToo many character!!!\n"
-message: .ASCIZ "\ntesting"
+errorMsg1: .ASCIZ "\nError: Invalid character entered\n"
+errorMsg2: .ASCIZ "\nError: Too many characters entered\n"
+testMsg: .ASCIZ "\nTEST"
