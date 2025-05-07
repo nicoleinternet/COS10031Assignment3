@@ -1,0 +1,56 @@
+//codemaker enters a code (4 characters representing the colour selections)
+// R4 - CodeMaker Name
+// R6 - Secret Code
+// R7 - Secret code address
+// R8 - Single code character
+// R10 - Message Register
+
+
+//PLACEHOLDER
+//initialize codemaker name for testing purposes
+    MOV R4, #codemaker
+
+
+
+GETCODE:
+    //Request input from codemaker
+        STR R4, .WriteString
+        MOV R10, #whatIsSecretCode
+        STR R10, .WriteString
+
+    //get user input
+        MOV R6, #secretcode
+        STR R6, .ReadSecret
+
+    LDR R7, [R6]
+    LDRB R8, [R7]
+    //check characters are b, c, g, p, r, or y.
+    //decimal ascii codes: 98, 99, 103, 112, 114, 121
+    //if all okay, continue
+
+    //check string length is exactly 4 characters long
+
+
+    //code is valid message
+        MOV R10, #codeValid
+        STR R10, .WriteString
+
+
+
+HALT
+
+// Store Secret Code
+secretcode: .BLOCK 128
+            .ASCIZ ""
+// Ask codemaker to enter a code
+whatIsSecretCode: .ASCIZ ", please enter a 4-character secret code\n"
+
+
+//PLACEHOLDER
+//codemaker name
+codemaker: .ASCIZ "Marcus"
+
+//getcode msg
+requestCode: .ASCIZ "Enter a code: "
+//code accept msg
+codeValid: .ASCIZ "The code entered is valid\n"
