@@ -57,9 +57,9 @@
     // Take input from user and store to R11
     LDR R11, .InputNum
     // Print guessLimit from R11
-    STR R11, .WriteSignedNum
+    STR R11, .WriteUnsignedNum
 //================================================================================================
-// Stage 3 - A Code Entry Function - Vandy Aum
+// Stage 3 - A Code Entry Function - Marcus Mifsud & Vandy Aum
 // Marcus - Consolidated into functions and split stage 2 and 3
 // Display request for secret code entry
     MOV R10, #promptRuleMsg
@@ -70,17 +70,67 @@
     STR R10, .WriteString
     MOV R10, #requestCodeMsg
     STR R10, .WriteString
+    MOV R10, #newLineMsg
+    STR R10, .WriteString
     BL getcode
     BL secretCodeToArray
 //================================================================================================
-// continue stage 4 code from here
-    BL outSecretCode
+// Stage 4 - Query Code Entry - Nicole Reichert
+// Marcus - Consolidated Nicole's work into main code base
+// Initialize to currentGuessCount
+MOV R3, #0
+LDR R3, currentGuessCount
+// Increment guess count by 1
+ADD R3, R3, #1
+STR R3, currentGuessCount
+// Check if we are at guess limit
+CMP R3, R11
+BGT break
+// reset R3
+MOV R3, #0
+//
+// Continue to guess now that we've checked guess count
+// Print 'What is your guess'
+MOV R10, #requestGuessMsg
+STR R10, .WriteString
+// Print codebreaker name
+MOV R10, #codeBreaker
+STR R10, .WriteString
+// Print question mark
+MOV R10, #questionMarkMsg
+STR R10, .WriteString
+// End line
+MOV R10, #newLineMsg
+STR R10, .WriteString
+//
+// Print 'This is guess number: '
+MOV R10, #guessNumberCountMsg
+STR R10, .WriteString
+// Print guess number
+LDR R10, currentGuessCount
+STR R10, .WriteUnsignedNum
+// End line
+MOV R10, #newLineMsg
+STR R10, .WriteString
+//
+// Get codebreaker's guess
+BL getcode
+BL queryCodeToArray
+
+B query
+// out of guesses
+break:
     HALT
+//================================================================================================
+// Continue stage 5 here
+query:
+    HALT
+
 //================================================================================================
 // FUNCTIONS
 //
-// Stage 2 - A Code Entry Function - Vandy Aum
-// Marcus - Consolidated into functions and split stage 2 and 3
+// Stage 2 - A Code Entry Function - Vandy Aum & Marcus Mifsud
+//
 getcode:
     // store address of where the function was called from
     MOV R8, LR
@@ -160,6 +210,9 @@ secretCodeToArray:
     // load the address of the secret code into R6
     MOV R6, #secretcode
     B codeToArray
+queryCodeToArray:
+    MOV R6, #querycode
+    B codeToArray
 codeToArray:
     // initialize the array position to 0
     MOV R7, #0
@@ -177,7 +230,7 @@ codeToArray:
         // increment index counter by 4
         ADD R7, R7, #4
 
-        CMP R7, #codeArraySize // repeat until 4 elements of the array have been filled
+        CMP R7, #16 // repeat until 4 elements of the array have been filled
         BLT fillArrayLoop
     B Return
     
@@ -185,7 +238,6 @@ codeToArray:
 outSecretCode:
     MOV R6, #secretcode
     B outCodeArray
-
 // function to output the code from an array
 outCodeArray:
     // intialize index counter
@@ -199,7 +251,7 @@ outCodeArray:
         ADD R7, R7, #4
 
         // loop until 4 elements have been output
-        CMP R7, #codeArraySize
+        CMP R7, #16
         BLT outCodeArrayLoop
     B Return
 
@@ -210,15 +262,25 @@ codeMaker: .BLOCK 128
 // Store block of memory of 128 bytes to store the codebreaker's name
 codeBreaker: .BLOCK 128
 //
-codeArraySize: 16 // 4 elements * 4 bytes
+arraySize: 16 // 4 elements * 4 bytes
+// secret code array
 .ALIGN 128
 secretcode: .BYTE   0
                     0
                     0
                     0
-
+//
+// query code array
+.ALIGN 128
+querycode: .BYTE    0
+                    0
+                    0
+                    0
+//
+// temp code string
 tempcode: .BLOCK 128
-
+//
+currentGuessCount: .BYTE 0
 //
 // MESSAGES =========================================================
 // Display whoIsCodeMakerMsg Query prompt:
@@ -227,11 +289,18 @@ whoIsCodeMakerMsg: .ASCIZ "Codemaker is: "
 whoIsCodeBreakerMsg: .ASCIZ "\nCodebreaker is: "
 // Display guessLimit Query prompt:
 whatIsGuessLimitMsg: .ASCIZ "\nGuess Limit: "
+requestGuessMsg: .ASCIZ "What is your guess "
+guessNumberCountMsg: .ASCIZ "This is guess number: "
 //Display the prompt for user to input the secret code
 requestCodeMsg: .ASCIZ " enter the Code: "
 promptRuleMsg: .ASCIZ "\nType in 4 colors for the secret code"
 colorChoiceMsg: .ASCIZ "\n(r-RED, g-GREEN, b-BLUE, y-YELLOW, p-PURPLE, c-CYAN)\n"
+// General use Messages
+newLineMsg: .ASCIZ "\n"
+questionMarkMsg: .ASCIZ "?"
+// Error Messages
 errorMsg1: .ASCIZ "\nError: Invalid character entered\n"
 errorMsg2: .ASCIZ "\nError: Not enough characters entered\n"
 errorMsg3: .ASCIZ "\nError: Too many characters entered\n"
+// Test Message
 testMsg: .ASCIZ "\nTEST\n"
