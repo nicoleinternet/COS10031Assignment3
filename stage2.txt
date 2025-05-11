@@ -13,8 +13,8 @@
     // R1 (Compare Code of (Correct Pos, Incorrect Col))
     // R2
     // R3
-    // R4 Codemaker Name
-    // R5 Codebreaker Name
+    // R4 
+    // R5 
     // R6
     // R7
     // R8 Function Return (stores LR to return after a function is used within a function)
@@ -26,28 +26,28 @@
 // Stage 1 - Game Setup - Luke Byrnes
 //
 // Prompt and store Codemaker Name
-    // Set whoIsCodeMaker Query prompt to R10
-    MOV R10, #whoIsCodeMaker
-    // print whoIsCodeMaker Query from R10
+    // Set whoIsCodeMakerMsg Query prompt to R10
+    MOV R10, #whoIsCodeMakerMsg
+    // print whoIsCodeMakerMsg Query from R10
     STR R10, .WriteString
-    // Set codeMaker value to R4
-    MOV R4, #codeMaker
-    // Take input from user and store to R4
-    STR R4, .ReadString
-    // Print codeMaker value from R4
-    STR R4, .WriteString
+    // Move codeMaker address to R10
+    MOV R10, #codeMaker
+    // Take input from user and store to R10
+    STR R10, .ReadString
+    // Print codeMaker value from R10
+    STR R10, .WriteString
 //
 // Prompt and store CodeBreaker Name
-    // Set whoIsCodeMaker Query prompt to R10
-    MOV R10, #whoIsCodeBreaker
-    // print whoIsCodeMaker Query from R10
+    // Set whoIsCodeMakerMsg Query prompt to R10
+    MOV R10, #whoIsCodeBreakerMsg
+    // print whoIsCodeMakerMsg Query from R10
     STR R10, .WriteString
-    // Set codeMaker value to R5
-    MOV R5, #codeBreaker
-    // Take input from user and store to R5
-    STR R5, .ReadString
-    // Print codeMaker value from R5
-    STR R5, .WriteString
+    // Move codeBreaker address to R10
+    MOV R10, #codeBreaker
+    // Take input from user and store to R10
+    STR R10, .ReadString
+    // Print codeMaker value from R10
+    STR R10, .WriteString
 //
 // Prompt and store GuessLimit for the session
     // Set guessLimit Query prompt to R10
@@ -82,7 +82,7 @@ getcode:
     MOV R8, LR
 getcodeNested:
     // Read input of code
-    MOV R12, #myCode
+    MOV R12, #tempcode
     STR R12, .ReadSecret
 // Validate Secret Code
     // First Character
@@ -160,7 +160,7 @@ codeBreaker: .BLOCK 128
 whatIsGuessLimit: .ASCIZ "\nGuess Limit: "
 //Display the prompt for user to input the secret code
 requestCodeMsg: .ASCIZ "Enter the Code: "
-myCode: .BLOCK 128
+tempcode: .BLOCK 128
 errorMsg1: .ASCIZ "\nError: Invalid character entered"
 errorMsg2: .ASCIZ "\nError: Not enough characters entered"
 errorMsg3: .ASCIZ "\nError: Too many characters entered"
