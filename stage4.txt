@@ -79,10 +79,10 @@
 // Marcus - Consolidated Nicole's work into main code base
 // Initialize to currentGuessCount
 MOV R3, #0
-LDR R3, currentGuessCount
+LDRB R3, currentGuessCount
 // Increment guess count by 1
 ADD R3, R3, #1
-STR R3, currentGuessCount
+STRB R3, currentGuessCount
 // Check if we are at guess limit
 CMP R3, R11
 BGT break
@@ -107,7 +107,7 @@ STR R10, .WriteString
 MOV R10, #guessNumberCountMsg
 STR R10, .WriteString
 // Print guess number
-LDR R10, currentGuessCount
+LDRB R10, currentGuessCount
 STR R10, .WriteUnsignedNum
 // End line
 MOV R10, #newLineMsg
@@ -206,6 +206,7 @@ Return: RET
 // R9 - Current Character
 // R6 - Memory address of the array to fill
 // R7 - Array index
+// R3 - Array Size
 secretCodeToArray:
     // load the address of the secret code into R6
     MOV R6, #secretcode
@@ -216,6 +217,8 @@ queryCodeToArray:
 codeToArray:
     // initialize the array position to 0
     MOV R7, #0
+    // initialize array size
+    LDRB R3, arraySize
     fillArrayLoop:
         // divide R7 (index) by 4
         LSR R7, R7, #2
@@ -230,7 +233,7 @@ codeToArray:
         // increment index counter by 4
         ADD R7, R7, #4
 
-        CMP R7, #16 // repeat until 4 elements of the array have been filled
+        CMP R7, R3 // repeat until 4 elements of the array have been filled
         BLT fillArrayLoop
     B Return
     
@@ -242,6 +245,8 @@ outSecretCode:
 outCodeArray:
     // intialize index counter
     MOV R7, #0
+    // initialize array size
+    LDRB R3, arraySize
     // output the 4 digit code from an array
     outCodeArrayLoop:
         LDRB R10, [R6 + R7]
@@ -251,7 +256,7 @@ outCodeArray:
         ADD R7, R7, #4
 
         // loop until 4 elements have been output
-        CMP R7, #16
+        CMP R7, R3
         BLT outCodeArrayLoop
     B Return
 
@@ -262,7 +267,7 @@ codeMaker: .BLOCK 128
 // Store block of memory of 128 bytes to store the codebreaker's name
 codeBreaker: .BLOCK 128
 //
-arraySize: 16 // 4 elements * 4 bytes
+arraySize: .BYTE 16 // 4 elements * 4 bytes
 // secret code array
 .ALIGN 128
 secretcode: .BYTE   0
