@@ -1,98 +1,237 @@
-// Nicole Reichert
-// Stage 4 - Query Code Entry (10% Marks)
-// Allowing the codebreak to enter codes up to
-// max number of guesses.
+//================================================================================================
+// COS10031 - Computer Technology | Assessment 3
+// Vandy Aum, Marcus Mifsud, Nicole Reichert, Luke Byrnes
+//  ___  ___          _                      _           _ 
+//  |  \/  |         | |                    (_)         | |
+//  | .  . | __ _ ___| |_ ___ _ __ _ __ ___  _ _ __   __| |
+//  | |\/| |/ _` / __| __/ _ \ '__| '_ ` _ \| | '_ \ / _` |
+//  | |  | | (_| \__ \ ||  __/ |  | | | | | | | | | | (_| |
+//  \_|  |_/\__,_|___/\__\___|_|  |_| |_| |_|_|_| |_|\__,_|                                                  
+//
 // Register Assignations
-// R0, (Compare Code of Correct Pos/Col)
-// R1, (Compare Code of (Correct Pos, Incorrect Col))
-// R2, Codebreaker
-// R3, Codebreaker
-// R4, Codemaker
-// R5, Codemaker
-// R10 Message Register
-// R9 code address
-//R8 Word counter
-// R11 Guess Limit
-// R12 Secret Code
-// array for current query code
+    // R0 (Compare Code of Correct Pos/Col)
+    // R1 (Compare Code of (Correct Pos, Incorrect Col))
+    // R2
+    // R3
+    // R4 
+    // R5 
+    // R6
+    // R7
+    // R8 Function Return (stores LR to return after a function is used within a function)
+    // R9 Code character address
+    // R10 String Handling
+    // R11 Guess Limit
+    // R12 Address to temp code
+//================================================================================================
+// Stage 1 - Game Setup - Luke Byrnes
+//
+// Prompt and store Codemaker Name
+    // Set whoIsCodeMakerMsg Query prompt to R10
+    MOV R10, #whoIsCodeMakerMsg
+    // print whoIsCodeMakerMsg Query from R10
+    STR R10, .WriteString
+    // Move codeMaker address to R10
+    MOV R10, #codeMaker
+    // Take input from user and store to R10
+    STR R10, .ReadString
+    // Print codeMaker value from R10
+    STR R10, .WriteString
+//
+// Prompt and store CodeBreaker Name
+    // Set whoIsCodeMakerMsg Query prompt to R10
+    MOV R10, #whoIsCodeBreakerMsg
+    // print whoIsCodeMakerMsg Query from R10
+    STR R10, .WriteString
+    // Move codeBreaker address to R10
+    MOV R10, #codeBreaker
+    // Take input from user and store to R10
+    STR R10, .ReadString
+    // Print codeMaker value from R10
+    STR R10, .WriteString
+//
+// Prompt and store GuessLimit for the session
+    // Set guessLimit Query prompt to R10
+    MOV R10, #whatIsGuessLimitMsg
+    // Print whatIsGuessLimitMsg from R10
+    STR R10, .WriteString
+    // Take input from user and store to R11
+    LDR R11, .InputNum
+    // Print guessLimit from R11
+    STR R11, .WriteSignedNum
+//================================================================================================
+// Stage 3 - A Code Entry Function - Vandy Aum
+// Marcus - Consolidated into functions and split stage 2 and 3
+// Display request for secret code entry
+    MOV R10, #promptRuleMsg
+    STR R10, .WriteString
+    MOV R10, #colorChoiceMsg
+    STR R10, .WriteString
+    MOV R10, #codeMaker
+    STR R10, .WriteString
+    MOV R10, #requestCodeMsg
+    STR R10, .WriteString
+    BL getcode
+    BL secretCodeToArray
+//================================================================================================
+// continue stage 4 code from here
+    BL outSecretCode
+    HALT
+//================================================================================================
+// FUNCTIONS
+//
+// Stage 2 - A Code Entry Function - Vandy Aum
+// Marcus - Consolidated into functions and split stage 2 and 3
+getcode:
+    // store address of where the function was called from
+    MOV R8, LR
+// branch here if the code entered is invalid
+getcodeNested:
+    // Read input of code
+    MOV R12, #tempcode
+    STR R12, .ReadSecret
+// Validate Secret Code
+    // First Character
+        // Store the address of the first byte of R12 content (temp code) in R9
+        LDRB R9, [R12]
+        BL validateChar
+    // Second Character
+        // Store the address of the second byte of R12 content (temp code) in R9
+        //one character is one byte so when adding one byte to R12 it will be the address of the next character
+        LDRB R9, [R12, #1] 
+        BL validateChar
+    // Third Character
+        // Store the address of the third byte of R12 content (temp code) in R9
+        LDRB R9, [R12, #2]
+        BL validateChar
+    // Fourth Character
+        // Store the address of the fourth byte of R12 content (temp code) in R9
+        LDRB R9, [R12, #3]
+        BL validateChar
+    // Fifth Character
+        // Store the address of the fifth byte of R12 content (temp code) in R9
+        LDRB R9, [R12, #4]
+        CMP R9, #0      //check if a character was not entered
+        BNE overLimit   //if a character was entered branch to 'overLimit'
+    //if a fifth character was not entered and all prior checks passed, input is valid, return to code
+    // return address the function was called from to LR
+    MOV LR, R8
+    B Return
+         
+invalidChar:
+    MOV R10, #errorMsg1
+    STR R10, .WriteString
+    b getcodeNested
+tooFewChar:
+    MOV R10, #errorMsg2
+    STR R10, .WriteString
+    b getcodeNested
+overLimit:
+    MOV R10, #errorMsg3
+    STR R10, .WriteString
+    b getcodeNested
 
-queryloop:
-// Check if we are at guess limit (guessLimit,currentGuessCount) in R2/3
-MOV R3, #0
-MOV R2, #0
-LDR R3, currentGuessCount
-ADD R3, R3, #1
-LDR R2, guessLimit
-CMP R3,R2
-BGT break
-MOV R3, #0
-MOV R2, #0
-// Print output/input now we've checked guess counts.
-// Print 'what is your guess'
-MOV R10, #GuessUpdate
-STR R10, .WriteString
-MOV R3, #GuessChoice
-// Get 4-char guess (is unbound)
-STR R3, .ReadString
-LDR R3, GuessChoice
-// Update count of guesses going forward
-MOV R3, #0
-LDR R3, currentGuessCount
-ADD R3, R3, #1
-STR R3, currentGuessCount
-MOV R3, #0
-// Present count of addresses to output
-MOV R10, #codeBreaker
-STR R10, .WriteString
-MOV R10, #GuessNumberCount
-STR R10, .WriteString
-LDR R10, currentGuessCount
-STR R10, .WriteUnsignedNum
+// VALIDATE CHARACTER FUNCTION
+validateChar:
+    CMP R9, #0        //check if a character was not entered
+    BEQ tooFewChar
+    CMP R9, #0x72     //check if the character is r(red)
+    BEQ Return
+    CMP R9, #0x67     //check if the character is g(green)
+    BEQ Return
+    CMP R9, #0x62     //check if the character is b(blue)
+    BEQ Return
+    CMP R9, #0x79     //check if the character is y(yellow)
+    BEQ Return
+    CMP R9, #0x70     //check if the character is p(purple)
+    BEQ Return
+    CMP R9, #0x63     //check if the character is c(cyan)
+    BEQ Return
+    b invalidChar     //branch to 'invalidChar' if the character was not matched by any of the above checks
 
-// #GuessChoice will now have a 4 char guess.
-// Iterate through it like an array in charcheck.
-; ASCII r (0x72) g (0x67) b (0x62) y (0x79) p (0x70) c (0x63)
-charcheck:
-// Load address of GuessChoice
-MOV R9, #GuessChoice
-// Indexed address of R9 (GuessChoice + R3)
-LDRB R2, [R9 + R3]
-ADD R3, R3, #1
-// Are we thru the loop and OK to take a guess?
-CMP R3, #5
-// ASCII compares
-BEQ takeguess
-CMP R2, #0x72
-BEQ charcheck
-CMP R2, #0x67
-BEQ charcheck
-CMP R2, #0x62
-BEQ charcheck
-CMP R2, #0x79
-BEQ charcheck
-CMP R2, #0x63
-BEQ charcheck
-CMP R2,#0x63
-BEQ charcheck
-// If our loaded byte doesn't equal any of these, break unconditionally
-B break
+// Function to return from function
+Return: RET
 
-break: //returns to input
-MOV R0, #99999
-HALT
-takeguess:
-; We now have a valid guess, let's branch it in the next stage!
-MOV R0, #11111
-B queryloop
-HALT
+// Store code to array function
+// R12 - Address to tempcode is stored here
+// R9 - Current Character
+// R6 - Memory address of the array to fill
+// R7 - Array index
+secretCodeToArray:
+    // load the address of the secret code into R6
+    MOV R6, #secretcode
+    B codeToArray
+codeToArray:
+    // initialize the array position to 0
+    MOV R7, #0
+    fillArrayLoop:
+        // divide R7 (index) by 4
+        LSR R7, R7, #2
+        // load character into R9
+        LDRB R9, [R12 + R7]
+        // multiply R7 (index) by 4
+        LSL R7, R7, #2
 
-GuessChoice: .BLOCK 128 // block of 128 bytes
-GuessChar: .BLOCK 128
-GuessNumberCount: .ASCIZ ", this is guess number: "
-GuessUpdate: .ASCIZ "What is your guess as codebreaker? \n"
-// codeBreaker is BYTE to store a string in practice (stage1)
-codeBreaker: .ASCIZ "sample"
-guessLimit: .WORD 5
-currentGuessCount: .WORD 0
+        // store character into array element
+        STR R9, [R6 + R7]
 
+        // increment index counter by 4
+        ADD R7, R7, #4
 
+        CMP R7, #codeArraySize // repeat until 4 elements of the array have been filled
+        BLT fillArrayLoop
+    B Return
+    
+// function to output the secret code
+outSecretCode:
+    MOV R6, #secretcode
+    B outCodeArray
+
+// function to output the code from an array
+outCodeArray:
+    // intialize index counter
+    MOV R7, #0
+    // output the 4 digit code from an array
+    outCodeArrayLoop:
+        LDRB R10, [R6 + R7]
+        STR R10, .WriteChar
+
+        // increment index
+        ADD R7, R7, #4
+
+        // loop until 4 elements have been output
+        CMP R7, #codeArraySize
+        BLT outCodeArrayLoop
+    B Return
+
+//================================================================================================
+// STORAGE =========================================================
+// Store block of memory of 128 bytes to store the codemaker's name
+codeMaker: .BLOCK 128
+// Store block of memory of 128 bytes to store the codebreaker's name
+codeBreaker: .BLOCK 128
+//
+codeArraySize: 16 // 4 elements * 4 bytes
+.ALIGN 128
+secretcode: .BYTE   0
+                    0
+                    0
+                    0
+
+tempcode: .BLOCK 128
+
+//
+// MESSAGES =========================================================
+// Display whoIsCodeMakerMsg Query prompt:
+whoIsCodeMakerMsg: .ASCIZ "Codemaker is: "
+// Display whoIsCodeBreakerMsg Query prompt:
+whoIsCodeBreakerMsg: .ASCIZ "\nCodebreaker is: "
+// Display guessLimit Query prompt:
+whatIsGuessLimitMsg: .ASCIZ "\nGuess Limit: "
+//Display the prompt for user to input the secret code
+requestCodeMsg: .ASCIZ " enter the Code: "
+promptRuleMsg: .ASCIZ "\nType in 4 colors for the secret code"
+colorChoiceMsg: .ASCIZ "\n(r-RED, g-GREEN, b-BLUE, y-YELLOW, p-PURPLE, c-CYAN)\n"
+errorMsg1: .ASCIZ "\nError: Invalid character entered\n"
+errorMsg2: .ASCIZ "\nError: Not enough characters entered\n"
+errorMsg3: .ASCIZ "\nError: Too many characters entered\n"
+testMsg: .ASCIZ "\nTEST\n"
