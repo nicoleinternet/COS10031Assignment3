@@ -1,4 +1,4 @@
-///////////////////////////////////////////////////////////////
+//================================================================================================
 // COS10031 - Computer Technology | Assessment 3
 // Vandy Aum, Marcus Mifsud, Nicole Reichert, Luke Byrnes
 //  ___  ___          _                      _           _ 
@@ -13,52 +13,52 @@
     // R1 (Compare Code of (Correct Pos, Incorrect Col))
     // R2
     // R3
-    // R4 Codemaker Name
-    // R5 Codebreaker Name
+    // R4 
+    // R5 
     // R6
     // R7
     // R8 Function Return (stores LR to return after a function is used within a function)
     // R9 Code character address
-    // R10 Message Register
+    // R10 String Handling
     // R11 Guess Limit
-    // R12 Secret Code
-///////////////////////////////////////////////////////////////
+    // R12 Address to temp code
+//================================================================================================
 // Stage 1 - Game Setup - Luke Byrnes
 //
 // Prompt and store Codemaker Name
-    // Set whoIsCodeMaker Query prompt to R10
-    MOV R10, #whoIsCodeMaker
-    // print whoIsCodeMaker Query from R10
+    // Set whoIsCodeMakerMsg Query prompt to R10
+    MOV R10, #whoIsCodeMakerMsg
+    // print whoIsCodeMakerMsg Query from R10
     STR R10, .WriteString
-    // Set codeMaker value to R4
-    MOV R4, #codeMaker
-    // Take input from user and store to R4
-    STR R4, .ReadString
-    // Print codeMaker value from R4
-    STR R4, .WriteString
+    // Move codeMaker address to R10
+    MOV R10, #codeMaker
+    // Take input from user and store to R10
+    STR R10, .ReadString
+    // Print codeMaker value from R10
+    STR R10, .WriteString
 //
 // Prompt and store CodeBreaker Name
-    // Set whoIsCodeMaker Query prompt to R10
-    MOV R10, #whoIsCodeBreaker
-    // print whoIsCodeMaker Query from R10
+    // Set whoIsCodeMakerMsg Query prompt to R10
+    MOV R10, #whoIsCodeBreakerMsg
+    // print whoIsCodeMakerMsg Query from R10
     STR R10, .WriteString
-    // Set codeMaker value to R5
-    MOV R5, #codeBreaker
-    // Take input from user and store to R5
-    STR R5, .ReadString
-    // Print codeMaker value from R5
-    STR R5, .WriteString
+    // Move codeBreaker address to R10
+    MOV R10, #codeBreaker
+    // Take input from user and store to R10
+    STR R10, .ReadString
+    // Print codeMaker value from R10
+    STR R10, .WriteString
 //
 // Prompt and store GuessLimit for the session
     // Set guessLimit Query prompt to R10
-    MOV R10, #whatIsGuessLimit
-    // Print whatIsGuessLimit from R10
+    MOV R10, #whatIsGuessLimitMsg
+    // Print whatIsGuessLimitMsg from R10
     STR R10, .WriteString
     // Take input from user and store to R11
     LDR R11, .InputNum
     // Print guessLimit from R11
     STR R11, .WriteSignedNum
-///////////////////////////////////////////////////////////////
+//================================================================================================
 // Stage 3 - A Code Entry Function - Vandy Aum
 // Marcus - Consolidated into functions and split stage 2 and 3
 // Display request for secret code entry
@@ -66,47 +66,49 @@
     STR R10, .WriteString
     MOV R10, #colorChoiceMsg
     STR R10, .WriteString
-    STR R4, .WriteString
+    MOV R10, #codeMaker
+    STR R10, .WriteString
     MOV R10, #requestCodeMsg
     STR R10, .WriteString
     BL getcode
-///////////////////////////////////////////////////////////////
+    BL secretCodeToArray
+//================================================================================================
 // continue stage 4 code from here
-code:
-    MOV R10, #testMsg
-    STR R10, .WriteString
+    BL outSecretCode
     HALT
-///////////////////////////////////////////////////////////////
+//================================================================================================
 // FUNCTIONS
+//
 // Stage 2 - A Code Entry Function - Vandy Aum
 // Marcus - Consolidated into functions and split stage 2 and 3
 getcode:
     // store address of where the function was called from
     MOV R8, LR
+// branch here if the code entered is invalid
 getcodeNested:
     // Read input of code
-    MOV R12, #myCode
+    MOV R12, #tempcode
     STR R12, .ReadSecret
 // Validate Secret Code
     // First Character
-        // Store the address of the first byte of R12 content (secret code) in R9
+        // Store the address of the first byte of R12 content (temp code) in R9
         LDRB R9, [R12]
         BL validateChar
     // Second Character
-        // Store the address of the second byte of R12 content (secret code) in R9
+        // Store the address of the second byte of R12 content (temp code) in R9
         //one character is one byte so when adding one byte to R12 it will be the address of the next character
         LDRB R9, [R12, #1] 
         BL validateChar
     // Third Character
-        // Store the address of the third byte of R12 content (secret code) in R9
+        // Store the address of the third byte of R12 content (temp code) in R9
         LDRB R9, [R12, #2]
         BL validateChar
     // Fourth Character
-        // Store the address of the fourth byte of R12 content (secret code) in R9
+        // Store the address of the fourth byte of R12 content (temp code) in R9
         LDRB R9, [R12, #3]
         BL validateChar
     // Fifth Character
-        // Store the address of the fifth byte of R12 content (secret code) in R9
+        // Store the address of the fifth byte of R12 content (temp code) in R9
         LDRB R9, [R12, #4]
         CMP R9, #0      //check if a character was not entered
         BNE overLimit   //if a character was entered branch to 'overLimit'
@@ -149,24 +151,87 @@ validateChar:
 // Function to return from function
 Return: RET
 
-///////////////////////////////////////////////////////////////
-// MESSAGES
-// Display whoIsCodeMaker Query prompt:
-whoIsCodeMaker: .ASCIZ "Codemaker is: "
-// Store block of memory of 128 bytes to store the string
+// Store code to array function
+// R12 - Address to tempcode is stored here
+// R9 - Current Character
+// R6 - Memory address of the array to fill
+// R7 - Array index
+secretCodeToArray:
+    // load the address of the secret code into R6
+    MOV R6, #secretcode
+    B codeToArray
+codeToArray:
+    // initialize the array position to 0
+    MOV R7, #0
+    fillArrayLoop:
+        // divide R7 (index) by 4
+        LSR R7, R7, #2
+        // load character into R9
+        LDRB R9, [R12 + R7]
+        // multiply R7 (index) by 4
+        LSL R7, R7, #2
+
+        // store character into array element
+        STR R9, [R6 + R7]
+
+        // increment index counter by 4
+        ADD R7, R7, #4
+
+        CMP R7, #codeArraySize // repeat until 4 elements of the array have been filled
+        BLT fillArrayLoop
+    B Return
+    
+// function to output the secret code
+outSecretCode:
+    MOV R6, #secretcode
+    B outCodeArray
+
+// function to output the code from an array
+outCodeArray:
+    // intialize index counter
+    MOV R7, #0
+    // output the 4 digit code from an array
+    outCodeArrayLoop:
+        LDRB R10, [R6 + R7]
+        STR R10, .WriteChar
+
+        // increment index
+        ADD R7, R7, #4
+
+        // loop until 4 elements have been output
+        CMP R7, #codeArraySize
+        BLT outCodeArrayLoop
+    B Return
+
+//================================================================================================
+// STORAGE =========================================================
+// Store block of memory of 128 bytes to store the codemaker's name
 codeMaker: .BLOCK 128
-// Display whoIsCodeMaker Query prompt:
-whoIsCodeBreaker: .ASCIZ "\nCodebreaker is: "
-// Store block of memory of 128 bytes to store the string
+// Store block of memory of 128 bytes to store the codebreaker's name
 codeBreaker: .BLOCK 128
+//
+codeArraySize: 16 // 4 elements * 4 bytes
+.ALIGN 128
+secretcode: .BYTE   0
+                    0
+                    0
+                    0
+
+tempcode: .BLOCK 128
+
+//
+// MESSAGES =========================================================
+// Display whoIsCodeMakerMsg Query prompt:
+whoIsCodeMakerMsg: .ASCIZ "Codemaker is: "
+// Display whoIsCodeBreakerMsg Query prompt:
+whoIsCodeBreakerMsg: .ASCIZ "\nCodebreaker is: "
 // Display guessLimit Query prompt:
-whatIsGuessLimit: .ASCIZ "\nGuess Limit: "
+whatIsGuessLimitMsg: .ASCIZ "\nGuess Limit: "
 //Display the prompt for user to input the secret code
 requestCodeMsg: .ASCIZ " enter the Code: "
 promptRuleMsg: .ASCIZ "\nType in 4 colors for the secret code"
 colorChoiceMsg: .ASCIZ "\n(r-RED, g-GREEN, b-BLUE, y-YELLOW, p-PURPLE, c-CYAN)\n"
-myCode: .BLOCK 128
-errorMsg1: .ASCIZ "\nError: Invalid character entered"
-errorMsg2: .ASCIZ "\nError: Not enough characters entered"
-errorMsg3: .ASCIZ "\nError: Too many characters entered"
-testMsg: .ASCIZ "\nTEST"
+errorMsg1: .ASCIZ "\nError: Invalid character entered\n"
+errorMsg2: .ASCIZ "\nError: Not enough characters entered\n"
+errorMsg3: .ASCIZ "\nError: Too many characters entered\n"
+testMsg: .ASCIZ "\nTEST\n"
