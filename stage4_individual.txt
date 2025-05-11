@@ -35,12 +35,6 @@ MOV R3, #GuessChoice
 // Get 4-char guess (is unbound)
 STR R3, .ReadString
 LDR R3, GuessChoice
-// Update count of guesses going forward
-MOV R3, #0
-LDR R3, currentGuessCount
-ADD R3, R3, #1
-STR R3, currentGuessCount
-MOV R3, #0
 // Present count of addresses to output
 MOV R10, #codeBreaker
 STR R10, .WriteString
