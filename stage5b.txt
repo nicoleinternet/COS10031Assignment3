@@ -1,0 +1,145 @@
+//================================================================================================
+// COS10031 - Computer Technology | Assessment 3
+// Vandy Aum, Marcus Mifsud, Nicole Reichert, Luke Byrnes
+//  ___  ___          _                      _           _
+//  |  \/  |         | |                    (_)         | |
+//  | .  . | __ _ ___| |_ ___ _ __ _ __ ___  _ _ __   __| |
+//  | |\/| |/ _` / __| __/ _ \ '__| '_ ` _ \| | '_ \ / _` |
+//  | |  | | (_| \__ \ ||  __/ |  | | | | | | | | | | (_| |
+//  \_|  |_/\__,_|___/\__\___|_|  |_| |_| |_|_|_| |_|\__,_|
+//
+// Register Assignations
+    // R0 (Compare Code of Correct Pos/Col)
+    // R1 (Compare Code of (Correct Pos, Incorrect Col))
+    // R2
+    // R3
+    // R4
+    // R5
+    // R6
+    // R7
+    // R8 Function Return (stores LR to return after a function is used within a function)
+    // R9 Code character address
+    // R10 String Handling
+    // R11 Guess Limit
+    // R12 Address to temp code
+//================================================================================================
+; Nicole Reichert, 5b
+; Use R0,R1 count to give feedback to the user.
+// load guessLimit into R5
+// DELETE BLOCK WHEN ASSEMBLING STAGES
+MOV R11,#5
+STR R11, guessLimit
+// load R11 like guess limits was stored as a word
+LDR R11, guessLimit
+MOV R7, #5
+STR R7, currentGuessCount
+LDR R7, currentGuessCount
+MOV R0, #3
+MOV R1, #1
+// DELETE BLOCK WHEN ASSEMBLING STAGES
+// label for guess output
+guessoutput:
+MOV R10, #codeBreaker
+STR R10, .WriteString
+MOV R10, #positionmatchesMsg
+STR R10, .WriteString
+STR R0, .WriteUnsignedNum
+MOV R10, #colourmatchesMsg
+STR R10, .WriteString
+STR R1, .WriteUnsignedNum
+CMP R0, #4
+BEQ winstate
+CMP R11,R7
+BEQ losestate
+//catch to go and guess again (when assembled in all stages)
+HALT
+
+winstate:
+MOV R10, #newLineMsg
+STR R10, .WriteString
+MOV R10, #codeBreaker
+STR R10, .WriteString
+MOV R10, #winStateMsg
+STR R10, .WriteString
+B gameover
+
+losestate:
+MOV R10, #newLineMsg
+STR R10, .WriteString
+MOV R10, #codeBreaker
+STR R10, .WriteString
+MOV R10, #loseStateMsg
+STR R10, .WriteString
+B gameover
+
+gameover:
+MOV R10, #newLineMsg
+STR R10, .WriteString
+MOV R10, #gameOverMsg
+STR R10, .WriteString
+HALT
+
+
+
+//================================================================================================
+// STORAGE =========================================================
+// Store block of memory of 128 bytes to store the codemaker's name
+//codeMaker: .BLOCK 128
+// Store block of memory of 128 bytes to store the codebreaker's name
+//codeBreaker: .BLOCK 128
+// Array Size
+arraySize: .BYTE 16 // 4 elements * 4 bytes
+// secret code array
+.ALIGN 128
+secretcode: .BYTE   0
+                    0
+                    0
+                    0
+//
+// query code array
+.ALIGN 128
+querycode: .BYTE    0
+                    0
+                    0
+                    0
+//
+// guessLimit (stage1, WORD for storing limit of guesses)
+guessLimit: .WORD 0
+// temp code string
+tempcode: .BLOCK 128
+//
+currentGuessCount: .BYTE 0
+//
+// MESSAGES =========================================================
+// Display whoIsCodeMakerMsg Query prompt:
+whoIsCodeMakerMsg: .ASCIZ "Codemaker is: "
+// Display whoIsCodeBreakerMsg Query prompt:
+whoIsCodeBreakerMsg: .ASCIZ "\nCodebreaker is: "
+// Display guessLimit Query prompt:
+whatIsGuessLimitMsg: .ASCIZ "\nGuess Limit: "
+requestGuessMsg: .ASCIZ "What is your guess "
+guessNumberCountMsg: .ASCIZ "This is guess number: "
+//Display the prompt for user to input the secret code
+requestCodeMsg: .ASCIZ " enter the Code: "
+promptRuleMsg: .ASCIZ "\nType in 4 colors for the secret code"
+colorChoiceMsg: .ASCIZ "\n(r-RED, g-GREEN, b-BLUE, y-YELLOW, p-PURPLE, c-CYAN)\n"
+// Outcome of guess messages
+positionmatchesMsg: .ASCIZ ", your position matches: "
+colourmatchesMsg: .ASCIZ ", Colour matches: "
+// Win/Lose States/GameOver
+winStateMsg: .ASCIZ ", you WIN!"
+loseStateMsg: .ASCIZ ", you LOSE!"
+gameOverMsg: .ASCIZ "Game Over!"
+// General use Messages
+newLineMsg: .ASCIZ "\n"
+questionMarkMsg: .ASCIZ "?"
+// Error Messages
+errorMsg1: .ASCIZ "\nError: Invalid character entered!\n"
+errorMsg2: .ASCIZ "\nError: Not enough characters entered!\n"
+errorMsg3: .ASCIZ "\nError: Too many characters entered!\n"
+// Test Message
+testMsg: .ASCIZ "\nTEST\n"
+// STATIC NAMES FOR 5B PLEASE MOVE TO PROPER BLOCK WORD
+codeBreaker: .ASCIZ "\ncodebreaker"
+//
+codeMaker: .ASCIZ "\ncodemaker"
