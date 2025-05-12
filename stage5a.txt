@@ -1,0 +1,124 @@
+//================================================================================================
+// COS10031 - Computer Technology | Assessment 3
+// Vandy Aum, Marcus Mifsud, Nicole Reichert, Luke Byrnes
+//  ___  ___          _                      _           _
+//  |  \/  |         | |                    (_)         | |
+//  | .  . | __ _ ___| |_ ___ _ __ _ __ ___  _ _ __   __| |
+//  | |\/| |/ _` / __| __/ _ \ '__| '_ ` _ \| | '_ \ / _` |
+//  | |  | | (_| \__ \ ||  __/ |  | | | | | | | | | | (_| |
+//  \_|  |_/\__,_|___/\__\___|_|  |_| |_| |_|_|_| |_|\__,_|
+//
+// Register Assignations
+    // R0 (Compare Code of Correct Pos/Col)
+    // R1 (Compare Code of (Correct Pos, Incorrect Col))
+    // R2
+    // R3
+    // R4
+    // R5
+    // R6
+    // R7
+    // R8 Function Return (stores LR to return after a function is used within a function)
+    // R9 Code character address
+    // R10 String Handling
+    // R11 Guess Limit
+    // R12 Address to temp code
+//================================================================================================
+; Nicole Reichert, 5a
+comparecodes:
+// Setting up registers
+MOV R0,#0
+MOV R1,#0
+    case1start:
+    ;have we hit end of loop?
+    CMP R12, #0xC
+    BGT end
+    ; Load a peg from query code into R5
+    MOV R2,#querycode
+    LDR R5,[R2+R12]
+
+    // Load a peg from secretcode into R4
+    MOV R2,#secretcode
+    LDR R4,[R2+R12]
+
+    // Compare for Case 1 (BEQ)
+    CMP R4,R5
+    BEQ case1beq
+    BNE case1bne
+    //BNE case2loop
+    // if not, B to case1 loop
+    //B case2start
+
+    B case1start
+
+// Not same pos and col
+case1bne:
+// next idx for case1 on the next run
+// inner idx for case 2
+MOV R11,#0
+// lets check Case2
+B case2start
+
+// Same pos and col
+case1beq:
+ADD R0,R0,#0x1
+ADD R12,R12,#0x4
+B case1start
+
+case2beq:
+ADD R1,R1,#0x1
+ADD R11,R11,#0x4
+B case2start
+
+case2end:
+ADD R12,R12,#0x4
+B case1start
+
+skipinneridx:
+ADD R11,R11,#0x4
+B case2start
+
+case2start:
+; in this static example, it should be R0 1 R1 2
+; QUERY/SECRET
+; 70/70(r1), 70/67, 70/79
+; 67/72,67/67(r1),67/70
+; 62/72,62/67,62/70,62/79
+
+CMP R11, #0xC
+BGT case2end
+CMP R11,R12
+BEQ skipinneridx;
+// load secret (from #0) peg to R6
+LDR R6, [R2+R11]
+// COMPARE SECRETPEG to QUERYPEG
+CMP R6,R5
+BEQ case2beq
+BNE skipinneridx
+
+
+
+end:
+HALT
+
+
+// STORAGE =========================================================
+; Not final array, and is static in order to have individual functionality of array.
+// Array Size
+arraySize: .BYTE 16 // 4 elements * 4 bytes
+// secret code array
+.ALIGN 128
+//assume secret of rgpy
+secretcode: .BYTE   0x72
+                    0x67
+                    0x70
+                    0x79
+//
+// query code array
+// assume query of rpgb
+.ALIGN 128
+querycode: .BYTE    0x72
+                    0x70
+                    0x67
+                    0x62
+//
+// MESSAGES ========================================================
