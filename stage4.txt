@@ -75,7 +75,7 @@
     BL getcode
     BL secretCodeToArray
 //================================================================================================
-// Stage 4 - Query Code Entry - Nicole Reichert
+// Stage 4 - Query Code Entry - Nicole Reichert & Marcus Mifsud
 // Marcus - Consolidated Nicole's work into main code base
 queryloop:
     // Initialize to currentGuessCount
@@ -125,7 +125,7 @@ break:
 //================================================================================================
 // Continue stage 5 here
     query:
-    
+
         B queryloop
 
 //================================================================================================
@@ -133,6 +133,7 @@ break:
 //
 // Stage 2 - A Code Entry Function - Vandy Aum & Marcus Mifsud
 //
+// GET CODE FUNCTION
 getcode:
     // store address of where the function was called from
     MOV R8, LR
@@ -203,7 +204,7 @@ validateChar:
 // Function to return from function
 Return: RET
 
-// Store code to array function
+// STORE CODE TO ARRAY FUNCTION
 // R12 - Address to tempcode is stored here
 // R9 - Current Character
 // R6 - Memory address of the array to fill
@@ -239,11 +240,15 @@ codeToArray:
         BLT fillArrayLoop
     B Return
     
-// function to output the secret code
+// OUTPUT ARRAY FUNCTION (only used for testing)
+// output secret code
 outSecretCode:
     MOV R6, #secretcode
     B outCodeArray
-// function to output the code from an array
+// output query code
+outQueryCode
+    MOV R6, #querycode
+    B outCodeArray
 outCodeArray:
     // intialize index counter
     MOV R7, #0
@@ -268,7 +273,7 @@ outCodeArray:
 codeMaker: .BLOCK 128
 // Store block of memory of 128 bytes to store the codebreaker's name
 codeBreaker: .BLOCK 128
-//
+// Array Size
 arraySize: .BYTE 16 // 4 elements * 4 bytes
 // secret code array
 .ALIGN 128
@@ -306,8 +311,8 @@ colorChoiceMsg: .ASCIZ "\n(r-RED, g-GREEN, b-BLUE, y-YELLOW, p-PURPLE, c-CYAN)\n
 newLineMsg: .ASCIZ "\n"
 questionMarkMsg: .ASCIZ "?"
 // Error Messages
-errorMsg1: .ASCIZ "\nError: Invalid character entered\n"
-errorMsg2: .ASCIZ "\nError: Not enough characters entered\n"
-errorMsg3: .ASCIZ "\nError: Too many characters entered\n"
+errorMsg1: .ASCIZ "\nError: Invalid character entered!\n"
+errorMsg2: .ASCIZ "\nError: Not enough characters entered!\n"
+errorMsg3: .ASCIZ "\nError: Too many characters entered!\n"
 // Test Message
 testMsg: .ASCIZ "\nTEST\n"
