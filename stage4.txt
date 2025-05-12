@@ -77,54 +77,56 @@
 //================================================================================================
 // Stage 4 - Query Code Entry - Nicole Reichert
 // Marcus - Consolidated Nicole's work into main code base
-// Initialize to currentGuessCount
-MOV R3, #0
-LDRB R3, currentGuessCount
-// Increment guess count by 1
-ADD R3, R3, #1
-STRB R3, currentGuessCount
-// Check if we are at guess limit
-CMP R3, R11
-BGT break
-// reset R3
-MOV R3, #0
-//
-// Continue to guess now that we've checked guess count
-// Print 'What is your guess'
-MOV R10, #requestGuessMsg
-STR R10, .WriteString
-// Print codebreaker name
-MOV R10, #codeBreaker
-STR R10, .WriteString
-// Print question mark
-MOV R10, #questionMarkMsg
-STR R10, .WriteString
-// End line
-MOV R10, #newLineMsg
-STR R10, .WriteString
-//
-// Print 'This is guess number: '
-MOV R10, #guessNumberCountMsg
-STR R10, .WriteString
-// Print guess number
-LDRB R10, currentGuessCount
-STR R10, .WriteUnsignedNum
-// End line
-MOV R10, #newLineMsg
-STR R10, .WriteString
-//
-// Get codebreaker's guess
-BL getcode
-BL queryCodeToArray
+queryloop:
+    // Initialize to currentGuessCount
+    MOV R3, #0
+    LDRB R3, currentGuessCount
+    // Increment guess count by 1
+    ADD R3, R3, #1
+    STRB R3, currentGuessCount
+    // Check if we are at guess limit
+    CMP R3, R11
+    BGT break
+    // reset R3
+    MOV R3, #0
+    //
+    // Continue to guess now that we've checked guess count
+    // Print 'What is your guess'
+    MOV R10, #requestGuessMsg
+    STR R10, .WriteString
+    // Print codebreaker name
+    MOV R10, #codeBreaker
+    STR R10, .WriteString
+    // Print question mark
+    MOV R10, #questionMarkMsg
+    STR R10, .WriteString
+    // End line
+    MOV R10, #newLineMsg
+    STR R10, .WriteString
+    //
+    // Print 'This is guess number: '
+    MOV R10, #guessNumberCountMsg
+    STR R10, .WriteString
+    // Print guess number
+    LDRB R10, currentGuessCount
+    STR R10, .WriteUnsignedNum
+    // End line
+    MOV R10, #newLineMsg
+    STR R10, .WriteString
+    //
+    // Get codebreaker's guess
+    BL getcode
+    BL queryCodeToArray
 
-B query
+    B query
 // out of guesses
 break:
     HALT
 //================================================================================================
 // Continue stage 5 here
-query:
-    HALT
+    query:
+    
+        B queryloop
 
 //================================================================================================
 // FUNCTIONS
