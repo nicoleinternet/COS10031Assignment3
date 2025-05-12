@@ -246,7 +246,7 @@ outSecretCode:
     MOV R6, #secretcode
     B outCodeArray
 // output query code
-outQueryCode
+outQueryCode:
     MOV R6, #querycode
     B outCodeArray
 outCodeArray:
