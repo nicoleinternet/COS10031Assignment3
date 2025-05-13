@@ -84,9 +84,6 @@ queryloop:
     // Increment guess count by 1
     ADD R3, R3, #1
     STRB R3, currentGuessCount
-    // Check if we are at guess limit
-    CMP R3, R11
-    BGT break
     // reset R3
     MOV R3, #0
     //
@@ -120,97 +117,140 @@ queryloop:
 
     
     B comparecodes
-// out of guesses
-break:
-    HALT
 //================================================================================================
 // Stage 5 - Query Code Evaluation - Nicole Reichert
-    comparecodes:
-        // Initializing registers
-        MOV R0, #0  // Case 1 Counter
-        MOV R1, #0  // Case 2 Counter
-        MOV R3, #0
-        LDRB R3, arraySize // Array Size
-        MOV R9, #0  // Query character
-        MOV R4, #0  // Secret character
-        MOV R5, #querycode  // Query array address
-        MOV R6, #secretcode  // Secret array address
-        MOV R7, #0  // array index / loop counter
-        // R11 - Inner index
+// 5(a)
+comparecodes:
+    // Initializing registers
+    MOV R0, #0  // Case 1 Counter
+    MOV R1, #0  // Case 2 Counter
+    MOV R3, #0
+    LDRB R3, arraySize // Array Size
+    MOV R9, #0  // Query character
+    MOV R4, #0  // Secret character
+    MOV R5, #querycode  // Query array address
+    MOV R6, #secretcode  // Secret array address
+    MOV R7, #0  // array index / loop counter
+    // R2 - Inner index
 
 
-        // Case 1
-        case1start:
-            // initialize R11 (inner index)
-            MOV R11, #0
-            // Load a char from query code into R9
-            LDRB R9, [R5 + R7]
-            //
-            // Load a char from secret code into R4
-            LDRB R4, [R6 + R7]
-            //
-            // Compare for Case 1 (BEQ)
-            CMP R4, R9
-            // If case 1 is true
-            BEQ case1true
-            // If case 1 is false
-            B case2start
+    // Case 1
+    case1start:
+        // initialize R2 (inner index)
+        MOV R2, #0
+        // Load a char from query code into R9
+        LDRB R9, [R5 + R7]
+        //
+        // Load a char from secret code into R4
+        LDRB R4, [R6 + R7]
+        //
+        // Compare for Case 1 (BEQ)
+        CMP R4, R9
+        // If case 1 is true
+        BEQ case1true
+        // If case 1 is false
+        B case2start
 
-        // Case 2
-        case2start:
-            // if main index = inner index, skip case2 check
-            CMP R11, R7
-            BEQ skipcase2check
-            // load secret char
-            LDRB R4, [R6 + R11]
-            // Compare secret char to query char
-            CMP R4, R9
-            // branch here to skip comparison of chars already done in case 1
-            skipcase2check:
-            // increment inner index
-            ADD R11, R11, #4
-            // if case 2 is true
-            BEQ case2true
-            // loop until full array checked
-            CMP R11, R3
-            BLT case2start
-            // Add 4 to main index
-            ADD R7, R7, #4
-            B charQueryEnd
+    // Case 2
+    case2start:
+        // if main index = inner index, skip case2 check
+        CMP R2, R7
+        BEQ case2loopback
+        // load secret char
+        LDRB R4, [R6 + R2]
+        // Compare secret char to query char
+        CMP R4, R9
+        // if case 2 is true
+        BEQ case2true
+        //
+        // branch here to skip comparison of chars already done in case 1
+        case2loopback:
+        // increment inner index
+        ADD R2, R2, #4
+
+        // loop until full array checked
+        CMP R2, R3
+        BLT case2start
+        B charQueryEnd
+    
+    ///////////////////////////////////////////////////////////
+    // Case 1 success
+    // Query char matches secret char in same position
+    case1true:
+        // Add 1 to case1 counter
+        ADD R0, R0, #1
+        B case2start
         
-        ///////////////////////////////////////////////////////////
-        // Case 1 success
-        // Query char matches secret char in same position
-        case1true:
-            // Add 1 to case1 counter
-            ADD R0, R0, #1
-            B charQueryEnd
-            
 
-        // Case 2 success
-        // Query char matches a secret char in a different position
-        case2true:
-            // Add 1 to case2 counter
-            ADD R1, R1, #1
-            // go back to case 2 start
-            B case2start
+    // Case 2 success
+    // Query char matches a secret char in a different position
+    case2true:
+        // Add 1 to case2 counter
+        ADD R1, R1, #1
+        // go back to case 2 start
+        B case2loopback
 
-        // Loop back to main
-        charQueryEnd:
-            // Add 4 to main index
-            ADD R7, R7, #4
-            // Have we hit end of loop?
-            CMP R7, R3
-            // if not, loop back to start of char checks
-            BLT case1start
-            // if loop complete, display char check info
-            B stage5b
-
-        stage5b:
-            HALT
-
-
+    // Loop back to main
+    charQueryEnd:
+        // Add 4 to main index
+        ADD R7, R7, #4
+        // Have we hit end of loop?
+        CMP R7, R3
+        // if not, loop back to start of char checks
+        BLT case1start
+        // if loop complete, display char check info
+        B guessfeedback
+        //////////////////////////////////////////////////////
+//5(b)
+guessfeedback:
+    // Display position matches message
+    MOV R10, #positionMatchesMsg
+    STR R10, .WriteString
+    // Display case 1 counter
+    STR R0, .WriteUnsignedNum
+    // Display colour matches message
+    MOV R10, #colourMatchesMsg
+    STR R10, .WriteString
+    // Display case 2 counter
+    STR R1, .WriteUnsignedNum
+    // If 4 position matches
+    CMP R0, #4
+    // Branch to winstate
+    BEQ winstate
+    //
+    // Initialize to currentGuessCount
+    MOV R3, #0
+    LDRB R3, currentGuessCount
+    // If this was final guess
+    CMP R3, R11
+    BEQ losestate
+    // Else, loop back for another guess
     B queryloop
+
+    winstate:
+        MOV R10, #newLineMsg
+        STR R10, .WriteString
+        MOV R10, #codeBreaker
+        STR R10, .WriteString
+        MOV R10, #winStateMsg
+        STR R10, .WriteString
+        B gameover
+
+    losestate:
+        MOV R10, #newLineMsg
+        STR R10, .WriteString
+        MOV R10, #codeBreaker
+        STR R10, .WriteString
+        MOV R10, #loseStateMsg
+        STR R10, .WriteString
+        B gameover
+
+    gameover:
+        MOV R10, #newLineMsg
+        STR R10, .WriteString
+        MOV R10, #gameOverMsg
+        STR R10, .WriteString
+        HALT
 
 //================================================================================================
 // FUNCTIONS
@@ -407,6 +447,13 @@ guessNumberCountMsg: .ASCIZ "This is guess number: "
 requestCodeMsg: .ASCIZ " enter the Code: "
 promptRuleMsg: .ASCIZ "\nType in 4 colors for the secret code"
 colorChoiceMsg: .ASCIZ "\n(r-RED, g-GREEN, b-BLUE, y-YELLOW, p-PURPLE, c-CYAN)\n"
+// Outcome of guess messages
+positionMatchesMsg: .ASCIZ "Position matches: "
+colourMatchesMsg: .ASCIZ ", Colour matches: "
+// Win/Lose States/GameOver
+winStateMsg: .ASCIZ ", you WIN!"
+loseStateMsg: .ASCIZ ", you LOSE!"
+gameOverMsg: .ASCIZ "Game Over!"
 // General use Messages
 newLineMsg: .ASCIZ "\n"
 questionMarkMsg: .ASCIZ "?"
