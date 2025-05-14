@@ -64,10 +64,78 @@ Stage 1 makes use of the following functions:
 
 ### Stage 2 (`stage2.txt`)
 
-Stage 2...
+In stage 2 a function getcode was created to receive input of a code and validate that it follows the rules of the game. In getcodenested it checks that only 4 character has been 
+entered and no more than that. While in validateChar it will check that only 4 of the character "r, g, b, y, p & c" is entered.
 
 ```asm {filename="stage2.txt" code-line-numbers="true"}
-1234
+getcode:
+    // store address of where the function was called from
+    MOV R8, LR
+getcodeNested:
+    // Read input of code
+    MOV R12, #tempcode
+    STR R12, .ReadSecret
+// Validate Secret Code
+    // First Character
+        // Store the address of the first byte of R12 content (secret code) in R9
+        LDRB R9, [R12]
+        BL validateChar
+    // Second Character
+        // Store the address of the second byte of R12 content (secret code) in R9
+        //one character is one byte so when adding one byte to R12 it will be the address of the next character
+        LDRB R9, [R12, #1] 
+        BL validateChar
+    // Third Character
+        // Store the address of the third byte of R12 content (secret code) in R9
+        LDRB R9, [R12, #2]
+        BL validateChar
+    // Fourth Character
+        // Store the address of the fourth byte of R12 content (secret code) in R9
+        LDRB R9, [R12, #3]
+        BL validateChar
+    // Fifth Character
+        // Store the address of the fifth byte of R12 content (secret code) in R9
+        LDRB R9, [R12, #4]
+        CMP R9, #0      //check if a character was not entered
+        BNE overLimit   //if a character was entered branch to 'overLimit'
+    //if a fifth character was not entered and all prior checks passed, input is valid, return to code
+    // return address the function was called from to LR
+    MOV LR, R8
+    B Return
+         
+invalidChar:
+    MOV R10, #errorMsg1
+    STR R10, .WriteString
+    b getcodeNested
+tooFewChar:
+    MOV R10, #errorMsg2
+    STR R10, .WriteString
+    b getcodeNested
+overLimit:
+    MOV R10, #errorMsg3
+    STR R10, .WriteString
+    b getcodeNested
+
+// VALIDATE CHARACTER FUNCTION
+validateChar:
+    CMP R9, #0        //check if a character was not entered
+    BEQ tooFewChar
+    CMP R9, #0x72     //check if the character is r(red)
+    BEQ Return
+    CMP R9, #0x67     //check if the character is g(green)
+    BEQ Return
+    CMP R9, #0x62     //check if the character is b(blue)
+    BEQ Return
+    CMP R9, #0x79     //check if the character is y(yellow)
+    BEQ Return
+    CMP R9, #0x70     //check if the character is p(purple)
+    BEQ Return
+    CMP R9, #0x63     //check if the character is c(cyan)
+    BEQ Return
+    b invalidChar     //branch to 'invalidChar' if the character was not matched by any of the above checks
+
+// Function to return from function
+Return: RET
 ```
 
 ![Stage 2: Functional Screenshot](./img/stage2.png){width="600"}
