@@ -17,7 +17,7 @@
 
 // Prompt and store Codemaker Name
     // Set whoIsCodeMaker Query prompt to R10
-    MOV R10, #whoIsCodeMaker
+    MOV R10, #whoIsCodeMakerMsg
     // print whoIsCodeMaker Query from R10
     STR R10, .WriteString
     // Set codeMaker value to R4
@@ -29,7 +29,7 @@
 
 // Prompt and store CodeBreaker Name
     // Set whoIsCodeMaker Query prompt to R10
-    MOV R10, #whoIsCodeBreaker
+    MOV R10, #whoIsCodeBreakerMsg
     // print whoIsCodeMaker Query from R4
     STR R10, .WriteString
     // Set codeMaker value to R5
@@ -41,12 +41,12 @@
 
 // Prompt and store GuessLimit for the session
     // Set guessLimit Query prompt to R10
-    MOV R10, #whatIsGuessLimit
+    MOV R10, #whatIsGuessLimitMsg
     // Print whatIsGuessLimit from R10
     STR R10, .WriteString
     // Take input from user and store to R11
     LDR R11, .InputNum
-    STR R11, #guessLimit
+    STR R11, guessLimit
     // Print guessLimit from R11
     STR R11, .WriteSignedNum
     // Stop Program.
@@ -54,14 +54,14 @@
 
 // Program functions:
     // Display whoIsCodeMaker Query prompt:
-    whoIsCodeMaker: .ASCIZ "Codemaker is: "
+    whoIsCodeMakerMsg: .ASCIZ "Codemaker is: "
     // Store block of memory of 128 bytes to store the string
     codeMaker: .BLOCK 128
     // Display whoIsCodeMaker Query prompt:
-    whoIsCodeBreaker: .ASCIZ "\nCodebreaker is: "
+    whoIsCodeBreakerMsg: .ASCIZ "\nCodebreaker is: "
     // Store block of memory of 128 bytes to store the string
     codeBreaker: .BLOCK 128
     // Display guessLimit Query prompt:
-    whatIsGuessLimit: .ASCIZ "\nGuess Limit: "
+    whatIsGuessLimitMsg: .ASCIZ "\nGuess Limit: "
     // Store the guesslimit as a label, 0 as default
     guessLimit: .WORD 0
