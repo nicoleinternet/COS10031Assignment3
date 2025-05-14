@@ -51,7 +51,7 @@
 //
 // Prompt and store GuessLimit for the session
     // Set guessLimit Query prompt to R10
-    MOV R10, #whatIsGuessLimit
+    MOV R10, #whatIsGuessLimitMsg
     // Print whatIsGuessLimit from R10
     STR R10, .WriteString
     // Take input from user and store to R11
@@ -150,15 +150,15 @@ Return: RET
 ///////////////////////////////////////////////////////////////
 // MESSAGES
 // Display whoIsCodeMaker Query prompt:
-whoIsCodeMaker: .ASCIZ "Codemaker is: "
+whoIsCodeMakerMsg: .ASCIZ "Codemaker is: "
 // Store block of memory of 128 bytes to store the string
 codeMaker: .BLOCK 128
 // Display whoIsCodeMaker Query prompt:
-whoIsCodeBreaker: .ASCIZ "\nCodebreaker is: "
+whoIsCodeBreakerMsg: .ASCIZ "\nCodebreaker is: "
 // Store block of memory of 128 bytes to store the string
 codeBreaker: .BLOCK 128
 // Display guessLimit Query prompt:
-whatIsGuessLimit: .ASCIZ "\nGuess Limit: "
+whatIsGuessLimitMsg: .ASCIZ "\nGuess Limit: "
 //Display the prompt for user to input the secret code
 requestCodeMsg: .ASCIZ "Enter the Code: "
 tempcode: .BLOCK 128
