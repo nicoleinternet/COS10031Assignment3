@@ -23,7 +23,7 @@
     // R11 Guess Limit
     // R12 Address to temp code
 //================================================================================================
-// Stage 1 - Game Setup - Luke Byrnes
+// Stage 1 - Game Setup - Luke Byrnes & Nicole Reichert
 //
 // Prompt and store Codemaker Name
     // Set whoIsCodeMakerMsg Query prompt to R10
@@ -50,12 +50,15 @@
     STR R10, .WriteString
 //
 // Prompt and store GuessLimit for the session
+guesslimitprompt:
     // Set guessLimit Query prompt to R10
     MOV R10, #whatIsGuessLimitMsg
     // Print whatIsGuessLimitMsg from R10
     STR R10, .WriteString
     // Take input from user and store to R11
     LDR R11, .InputNum
+    // BL to check we have a value between 1 and 100
+    BL guesslimitcheck
     // Print guessLimit from R11
     STR R11, .WriteUnsignedNum
 //================================================================================================
@@ -79,13 +82,13 @@
 // Marcus - Consolidated Nicole's work into main code base
 queryloop:
     // Initialize to currentGuessCount
-    MOV R3, #0
-    LDRB R3, currentGuessCount
+    //MOV R3, #0
+    //LDRB R3, currentGuessCount
     // Increment guess count by 1
-    ADD R3, R3, #1
-    STRB R3, currentGuessCount
+    //ADD R3, R3, #1
+    //STRB R3, currentGuessCount
     // reset R3
-    MOV R3, #0
+    //MOV R3, #0
     //
     // Continue to guess now that we've checked guess count
     // Print 'What is your guess'
@@ -101,6 +104,8 @@ queryloop:
     MOV R10, #newLineMsg
     STR R10, .WriteString
     //
+    // Perform guessCount check now
+    BL guesscountcheck
     // Print 'This is guess number: '
     MOV R10, #guessNumberCountMsg
     STR R10, .WriteString
@@ -246,6 +251,8 @@ guessfeedback:
         B gameover
 
     gameover:
+        // clean our words if we wish to re-run
+        BL clean
         MOV R10, #newLineMsg
         STR R10, .WriteString
         MOV R10, #gameOverMsg
@@ -407,6 +414,43 @@ outCodeArray:
         BLT outCodeArrayLoop
     B Return
 
+//==========
+//=HELPER FUNCTIONS - Nicole Reichert
+// Checking bounds of functions - we could be inputting something over a word or over a hard limit of 1-255.
+guesslimitcheck:
+CMP R11, #0xFF
+BGT exceedlimit
+CMP R11, #0x1
+BLT exceedlimit
+RET
+
+exceedlimit:
+MOV R10, #errorMsg4
+STR R10, .WriteString
+MOV R11, #0
+B guesslimitprompt
+
+guesscountcheck:
+// Initialize to currentGuessCount
+    MOV R3, #0
+    LDRB R3, currentGuessCount
+    // Increment guess count by 1
+    ADD R3, R3, #1
+    STRB R3, currentGuessCount
+    // reset R3
+    MOV R3, #0
+    RET
+clean:
+// wipe currentguesscount
+    LDRB R8, currentGuessCount
+    MOV R8, #0
+    STRB R8, currentGuessCount
+    MOV R8, #secretcode
+    MOV R7, #0
+    STR R7, [R8]
+
+    RET
+
 //================================================================================================
 // STORAGE =========================================================
 // Store block of memory of 128 bytes to store the codemaker's name
@@ -461,5 +505,6 @@ questionMarkMsg: .ASCIZ "?"
 errorMsg1: .ASCIZ "\nError: Invalid character entered!\n"
 errorMsg2: .ASCIZ "\nError: Not enough characters entered!\n"
 errorMsg3: .ASCIZ "\nError: Too many characters entered!\n"
+errorMsg4: .ASCIZ "\n--Please enter a value from 1 to 255!--\n"
 // Test Message
 testMsg: .ASCIZ "\nTEST\n"
