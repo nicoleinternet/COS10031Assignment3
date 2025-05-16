@@ -141,8 +141,24 @@ getcode:
     getcodeNested:
         // Read input of code
         MOV R12, #tempcode
-        STR R12, .ReadSecret
+        // Initialize R6
+        MOV R6, #0
+        MOV R6, #secretcode
+        MOV R9, #0
+        LDRB R9, [R6]
+        CMP R9, #0
+        BEQ secretcodeentry
+        BNE querycodeentry
+        // If codemaker's turn
+        secretcodeentry:
+            STR R12, .ReadSecret
+            B validateCharLoop
+        // If codebreaker's turn
+        querycodeentry:
+            STR R12, .ReadString
+            B validateCharLoop
         // Validate Secret Code
+        validateCharLoop:
         // First Character
             // Store the address of the first byte of R12 content (temp code) in R9
             LDRB R9, [R12]
@@ -150,7 +166,7 @@ getcode:
         // Second Character
             // Store the address of the second byte of R12 content (temp code) in R9
             //one character is one byte so when adding one byte to R12 it will be the address of the next character
-            LDRB R9, [R12, #1] 
+            LDRB R9, [R12, #1]
             BL validateChar
         // Third Character
             // Store the address of the third byte of R12 content (temp code) in R9
@@ -166,9 +182,9 @@ getcode:
             CMP R9, #0      //check if a character was not entered
             BNE overLimit   //if a character was entered branch to 'overLimit'
         //if a fifth character was not entered and all prior checks passed, input is valid, return to code
-        // return address the function was called from to LR
-        MOV LR, R8
-        B Return
+            // return address the function was called from to LR
+            MOV LR, R8
+            B Return
          
 invalidChar:
     MOV R10, #errorMsg1
