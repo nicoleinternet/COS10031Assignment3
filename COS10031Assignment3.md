@@ -46,34 +46,38 @@ This program replicates gameplay of the Mastermind boardgame in Assembly using t
 
 Stage 1 makes use of the following functions:
 
-```asm {filename="Functions of 'stage1.txt'" code-line-numbers="true"}
+```{.asm filename="Functions of 'stage1.txt'" code-line-numbers="true"}
 // Program functions:
     // Display whoIsCodeMaker Query prompt:
-    whoIsCodeMaker: .ASCIZ "Codemaker is: "
+    whoIsCodeMakerMsg: .ASCIZ "Codemaker is: "
     // Store block of memory of 128 bytes to store the string
-    codeMaker: .BLOCK 128
+    codeMakerMsg: .BLOCK 128
     // Display whoIsCodeMaker Query prompt:
-    whoIsCodeBreaker: .ASCIZ "\nCodebreaker is: "
+    whoIsCodeBreakerMsg: .ASCIZ "\nCodebreaker is: "
     // Store block of memory of 128 bytes to store the string
-    codeBreaker: .BLOCK 128
+    codeBreakerMsg: .BLOCK 128
     // Display guessLimit Query prompt:
-    whatIsGuessLimit: .ASCIZ "\nGuess Limit: "
+    whatIsGuessLimitMsg: .ASCIZ "\nGuess Limit: "
 ```
 
 ![Stage 1: Functional Screenshot](./img/stage1.png){width="600"}
 
 ### Stage 2 (`stage2.txt`)
 
-In stage 2 a function `getcode` was created to receive input of a code and validate that it follows the rules of the game. After receiving input, the value of each character is extracted before branching to `validateChar` where it is checked against all valid characters. The fifth character of the string is then checked and returns an error if it has any value.
+In stage 2 a function `getcode` was created to receive input of a code and validate that it follows the rules of the game. After receiving input, the value of each character is extracted from the string using `LDRB` before branching to `validateChar` where it is checked against all valid characters. The fifth character of the string is then checked and returns an error if it has any value.
 
-```asm {filename="stage2.txt" code-line-numbers="true"}
+---
+stage2.txt
+---
+
+```{.asm code-line-numbers="true"}
 getcode:
     // store address of where the function was called from
     MOV R8, LR
     getcodeNested:
         // Read input of code
         MOV R12, #tempcode
-        STR R12, .ReadSecret
+        STR R12, .ReadString
         // Validate Secret Code
         // First Character
             // Store the address of the first byte of R12 content (secret code) in R9
@@ -141,10 +145,68 @@ Return: RET
 
 ### Stage 3 (`stage3.txt`)
 
-Stage 3...
+In stage 3 the 'codeToArray' function was created to convert the string 'tempcode' into an array. The `getcode` function was also modified to utilize `.ReadSecret` the first time it runs (always the code maker's turn) to hide the entered code from the code breaker.
 
-```asm {filename="stage3.txt" code-line-numbers="true"}
-1234
+---
+codeToArray function of 'stage3.txt'
+---
+
+```{.asm code-line-numbers="true"}
+// Store code to array function
+// R12 - Address to tempcode is stored here
+// R9 - Current Character
+// R6 - Memory address of the array to fill
+// R7 - Array index
+secretCodeToArray:
+    // load the address of the secret code into R6
+    MOV R6, #secretcode
+    B codeToArray
+codeToArray:
+    // initialize the array position to 0
+    MOV R7, #0
+    fillArrayLoop:
+        // divide R7 (index) by 4
+        LSR R7, R7, #2
+        // load character into R9
+        LDRB R9, [R12 + R7]
+        // multiply R7 (index) by 4
+        LSL R7, R7, #2
+
+        // store character into array element
+        STR R9, [R6 + R7]
+
+        // increment index counter by 4
+        ADD R7, R7, #4
+
+        CMP R7, #codeArraySize // repeat until 4 elements of the array have been filled
+        BLT fillArrayLoop
+    B Return
+```
+
+---
+exert from updated getcode function in 'stage3.txt'
+---
+
+```{.asm code-line-numbers="true"}
+getcodeNested:
+        // Read input of code
+        MOV R12, #tempcode
+        // Initialize R6
+        MOV R6, #0
+        MOV R6, #secretcode
+        MOV R9, #0
+        LDRB R9, [R6]
+        CMP R9, #0
+        BEQ secretcodeentry
+        BNE querycodeentry
+        // If codemaker's turn
+        secretcodeentry:
+            STR R12, .ReadSecret
+            B validateCharLoop
+        // If codebreaker's turn
+        querycodeentry:
+            STR R12, .ReadString
+            B validateCharLoop
 ```
 
 ![Stage 3: Functional Screenshot](./img/stage3.png){width="600"}
