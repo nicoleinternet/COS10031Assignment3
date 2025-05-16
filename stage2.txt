@@ -84,7 +84,7 @@ getcode:
     getcodeNested:
         // Read input of code
         MOV R12, #tempcode
-        STR R12, .ReadSecret
+        STR R12, .ReadString
         // Validate Secret Code
         // First Character
             // Store the address of the first byte of R12 content (secret code) in R9
