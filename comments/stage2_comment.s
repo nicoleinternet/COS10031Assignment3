@@ -1,0 +1,174 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; COS10031 - Computer Technology | Assessment 3
+;; Vandy Aum, Marcus Mifsud, Nicole Reichert, Luke Byrnes
+;;  ___  ___          _                      _           _
+;;  |  \;  |         | |                    (_)         | |
+;;  | .  . | __ _ ___| |_ ___ _ __ _ __ ___  _ _ __   __| |
+;;  | |\;| |; _` ; __| __; _ \ '__| '_ ` _ \| | '_ \ ; _` |
+;;  | |  | | (_| \__ \ ||  __; |  | | | | | | | | | | (_| |
+;;  \_|  |_;\__,_|___;\__\___|_|  |_| |_| |_|_|_| |_|\__,_|
+;;
+;; Register Assignations
+    ;; R0 (Compare Code of Correct Pos;Col)
+    ;; R1 (Compare Code of (Correct Pos, Incorrect Col))
+    ;; R2
+    ;; R3
+    ;; R4
+    ;; R5
+    ;; R6
+    ;; R7
+    ;; R8 Function Return (stores LR to return after a function is used within a function)
+    ;; R9 Code character address
+    ;; R10 Message Register
+    ;; R11 Guess Limit
+    ;; R12 Secret Code
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Stage 1 - Game Setup - Luke Byrnes
+;;
+;; Prompt and store Codemaker Name
+    ;; Set whoIsCodeMakerMsg Query prompt to R10
+    MOV R10, #whoIsCodeMakerMsg
+    ;; print whoIsCodeMakerMsg Query from R10
+    STR R10, .WriteString
+    ;; Move codeMaker address to R10
+    MOV R10, #codeMaker
+    ;; Take input from user and store to R10
+    STR R10, .ReadString
+    ;; Print codeMaker value from R10
+    STR R10, .WriteString
+;;
+;; Prompt and store CodeBreaker Name
+    ;; Set whoIsCodeMakerMsg Query prompt to R10
+    MOV R10, #whoIsCodeBreakerMsg
+    ;; print whoIsCodeMakerMsg Query from R10
+    STR R10, .WriteString
+    ;; Move codeBreaker address to R10
+    MOV R10, #codeBreaker
+    ;; Take input from user and store to R10
+    STR R10, .ReadString
+    ;; Print codeMaker value from R10
+    STR R10, .WriteString
+;;
+;; Prompt and store GuessLimit for the session
+    ;; Set guessLimit Query prompt to R10
+    MOV R10, #whatIsGuessLimit
+    ;; Print whatIsGuessLimit from R10
+    STR R10, .WriteString
+    ;; Take input from user and store to R11
+    LDR R11, .InputNum
+    ;; Print guessLimit from R11
+    STR R11, .WriteSignedNum
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Stage 2 - A Code Entry Function - Vandy Aum
+;; Marcus - Consolidated into functions and split stage 2 and 3
+;; Display request for secret code entry
+    MOV R10, #newLineMsg
+    STR R10, .WriteString
+    MOV R10, #requestCodeMsg
+    STR R10, .WriteString
+    BL getcode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; continue stage 3 code from here
+code:
+    MOV R10, #testMsg
+    STR R10, .WriteString
+    HALT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FUNCTIONS
+;; Stage 2 - A Code Entry Function - Vandy Aum
+;; Marcus - Consolidated into functions and split stage 2 and 3
+getcode:
+    ;; store address of where the function was called from
+    MOV R8, LR
+getcodeNested:
+    ;; Read input of code
+    ;; #TEMPCODE IS A TEST WORD AND STORES THE CODE FOR PROCESSING
+    MOV R12, #tempcode
+    STR R12, .ReadSecret
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;CHECK IF CHARACTERS ARE ASCII via validateChar;;
+;; Validate Secret Code
+    ;; First Character
+        ;; Store the address of the first byte of R12 content (secret code) in R9
+        LDRB R9, [R12]
+        BL validateChar
+    ;; Second Character
+        ;; Store the address of the second byte of R12 content (secret code) in R9
+        ;;one character is one byte so when adding one byte to R12 it will be the address of the next character
+        LDRB R9, [R12, #1]
+        BL validateChar
+    ;; Third Character
+        ;; Store the address of the third byte of R12 content (secret code) in R9
+        LDRB R9, [R12, #2]
+        BL validateChar
+    ;; Fourth Character
+        ;; Store the address of the fourth byte of R12 content (secret code) in R9
+        LDRB R9, [R12, #3]
+        BL validateChar
+    ;; Fifth Character
+        ;; Store the address of the fifth byte of R12 content (secret code) in R9
+        LDRB R9, [R12, #4]
+        CMP R9, #0      ;;check if a character was not entered
+        BNE overLimit   ;;if a character was entered branch to 'overLimit'
+    ;;if a fifth character was not entered and all prior checks passed, input is valid, return to code
+    ;; return address the function was called from to LR
+    MOV LR, R8
+    B Return
+
+invalidChar:
+    MOV R10, #errorMsg1
+    STR R10, .WriteString
+    b getcodeNested
+tooFewChar:
+    MOV R10, #errorMsg2
+    STR R10, .WriteString
+    b getcodeNested
+overLimit:
+    MOV R10, #errorMsg3
+    STR R10, .WriteString
+    b getcodeNested
+
+;;;;;;;;;;;;;;;;;;;;;; VALIDATE CHARACTER FUNCTION;;;;;;;;;;;;;
+;;;;Check each byte (loaded via LDRB) against allowed values.;;
+;;;;;;;;;;;;;r,g,b,y,p,c-0x72,0x67,0x62,0x79,0x70,0x63;;;;;;;;;
+validateChar:
+    CMP R9, #0        ;;check if a character was not entered
+    BEQ tooFewChar
+    CMP R9, #0x72     ;;check if the character is r(red)
+    BEQ Return
+    CMP R9, #0x67     ;;check if the character is g(green)
+    BEQ Return
+    CMP R9, #0x62     ;;check if the character is b(blue)
+    BEQ Return
+    CMP R9, #0x79     ;;check if the character is y(yellow)
+    BEQ Return
+    CMP R9, #0x70     ;;check if the character is p(purple)
+    BEQ Return
+    CMP R9, #0x63     ;;check if the character is c(cyan)
+    BEQ Return
+    b invalidChar     ;;branch to 'invalidChar' if the character was not matched by any of the above checks
+
+;; Function to return if we have an appropriate ASCII character.
+;; ENSURE LR (Link Register) has correct address. This should be populated from BL in getCodeNested
+Return: RET
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; MESSAGES
+;; Display whoIsCodeMaker Query prompt:
+whoIsCodeMaker: .ASCIZ "Codemaker is: "
+;; Store block of memory of 128 bytes to store the string
+codeMaker: .BLOCK 128
+;; Display whoIsCodeMaker Query prompt:
+whoIsCodeBreaker: .ASCIZ "\nCodebreaker is: "
+;; Store block of memory of 128 bytes to store the string
+codeBreaker: .BLOCK 128
+;; Display guessLimit Query prompt:
+whatIsGuessLimit: .ASCIZ "\nGuess Limit: "
+;;Display the prompt for user to input the secret code
+requestCodeMsg: .ASCIZ "Enter the Code: "
+tempcode: .BLOCK 128
+errorMsg1: .ASCIZ "\nError: Invalid character entered"
+errorMsg2: .ASCIZ "\nError: Not enough characters entered"
+errorMsg3: .ASCIZ "\nError: Too many characters entered"
+testMsg: .ASCIZ "\nTEST"
+newLineMsg: .ASCIZ "\n"
