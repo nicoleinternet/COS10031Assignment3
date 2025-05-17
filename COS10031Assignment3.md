@@ -213,10 +213,63 @@ getcodeNested:
 
 ### Stage 4 (`stage4.txt`)
 
-Stage 4...
+In stage 4 the `queryloop` function was created which increments the guess counter before checking if the code breaker has exceeded the guess limit. If not, the code breaker is requested to enter their guess using the `getcode` function. The code then branches back to the start of `queryloop` and continues looping until the guess limit is met.
 
-```asm {filename="stage3.txt" code-line-numbers="true"}
-1234
+---
+query loop function
+---
+
+```{.asm code-line-numbers="true"}
+queryloop:
+    // Initialize to currentGuessCount
+    MOV R3, #0
+    LDRB R3, currentGuessCount
+    // Increment guess count by 1
+    ADD R3, R3, #1
+    STRB R3, currentGuessCount
+    // Check if we are at guess limit
+    CMP R3, R11
+    BGT break
+    // reset R3
+    MOV R3, #0
+    //
+    // Continue to guess now that we've checked guess count
+    // Print 'What is your guess'
+    MOV R10, #requestGuessMsg
+    STR R10, .WriteString
+    // Print codebreaker name
+    MOV R10, #codeBreaker
+    STR R10, .WriteString
+    // Print question mark
+    MOV R10, #questionMarkMsg
+    STR R10, .WriteString
+    // End line
+    MOV R10, #newLineMsg
+    STR R10, .WriteString
+    //
+    // Print 'This is guess number: '
+    MOV R10, #guessNumberCountMsg
+    STR R10, .WriteString
+    // Print guess number
+    LDRB R10, currentGuessCount
+    STR R10, .WriteUnsignedNum
+    // End line
+    MOV R10, #newLineMsg
+    STR R10, .WriteString
+    //
+    // Get codebreaker's guess
+    BL getcode
+    BL queryCodeToArray
+
+    B query
+// out of guesses
+break:
+    HALT
+//================================================================================================
+// Continue stage 5 here
+    query:
+
+        B queryloop
 ```
 
 ![Stage 4: Functional Screenshot](./img/stage4.png){width="600"}
