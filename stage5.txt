@@ -138,7 +138,6 @@ comparecodes:
     MOV R7, #0  // array index / loop counter
     // R2 - Inner index
 
-
     // Case 1
     case1start:
         // initialize R2 (inner index)
