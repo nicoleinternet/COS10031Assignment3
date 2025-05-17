@@ -234,18 +234,22 @@ guessfeedback:
     winstate:
         MOV R10, #newLineMsg
         STR R10, .WriteString
+        MOV R10, #winStateMsg1
+        STR R10, .WriteString
         MOV R10, #codeBreaker
         STR R10, .WriteString
-        MOV R10, #winStateMsg
+        MOV R10, #winStateMsg2
         STR R10, .WriteString
         B gameover
 
     losestate:
         MOV R10, #newLineMsg
         STR R10, .WriteString
+        MOV R10, #loseStateMsg1
+        STR R10, .WriteString
         MOV R10, #codeBreaker
         STR R10, .WriteString
-        MOV R10, #loseStateMsg
+        MOV R10, #loseStateMsg2
         STR R10, .WriteString
         B gameover
 
@@ -494,8 +498,10 @@ colorChoiceMsg: .ASCIZ "\n(r-RED, g-GREEN, b-BLUE, y-YELLOW, p-PURPLE, c-CYAN)\n
 positionMatchesMsg: .ASCIZ "Position matches: "
 colourMatchesMsg: .ASCIZ ", Colour matches: "
 // Win/Lose States/GameOver
-winStateMsg: .ASCIZ ", you WIN!"
-loseStateMsg: .ASCIZ ", you LOSE!"
+winStateMsg1: .ASCIZ "Exact code match.\n"
+winStateMsg2: .ASCIZ ", you WIN!"
+loseStateMsg1: .ASCIZ "Out of guesses.\n"
+loseStateMsg2: .ASCIZ ", you LOSE!"
 gameOverMsg: .ASCIZ "Game Over!"
 // General use Messages
 newLineMsg: .ASCIZ "\n"
