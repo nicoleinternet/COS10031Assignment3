@@ -276,13 +276,95 @@ break:
 
 ### Stage 5a (`stage5a.txt`)
 
-Stage 5a...
+In stage 5 the `comparecodes` function was created, it utilizes a main loop for each character of the query code and a nested loop for each character of the secret code testing for case 2.
 
-```asm {filename="stage3.txt" code-line-numbers="true"}
-1234
+---
+compare codes function
+---
+
+```{.asm code-line-numbers="true"}
+comparecodes:
+    // Initializing registers
+    MOV R0, #0  // Case 1 Counter
+    MOV R1, #0  // Case 2 Counter
+    MOV R3, #0
+    LDRB R3, arraySize // Array Size
+    MOV R9, #0  // Query character
+    MOV R4, #0  // Secret character
+    MOV R5, #querycode  // Query array address
+    MOV R6, #secretcode  // Secret array address
+    MOV R7, #0  // array index / loop counter
+    // R2 - Inner index
+
+    // Case 1
+    case1start:
+        // initialize R2 (inner index)
+        MOV R2, #0
+        // Load a char from query code into R9
+        LDRB R9, [R5 + R7]
+        //
+        // Load a char from secret code into R4
+        LDRB R4, [R6 + R7]
+        //
+        // Compare for Case 1 (BEQ)
+        CMP R4, R9
+        // If case 1 is true
+        BEQ case1true
+        // If case 1 is false
+        B case2start
+
+    // Case 2
+    case2start:
+        // if main index = inner index, skip case2 check
+        CMP R2, R7
+        BEQ case2loopback
+        // load secret char
+        LDRB R4, [R6 + R2]
+        // Compare secret char to query char
+        CMP R4, R9
+        // if case 2 is true
+        BEQ case2true
+        //
+        // branch here to skip comparison of chars already done in case 1
+        case2loopback:
+        // increment inner index
+        ADD R2, R2, #4
+
+        // loop until full array checked
+        CMP R2, R3
+        BLT case2start
+        B charQueryEnd
+    
+    ///////////////////////////////////////////////////////////
+    // Case 1 success
+    // Query char matches secret char in same position
+    case1true:
+        // Add 1 to case1 counter
+        ADD R0, R0, #1
+        B case2start
+        
+
+    // Case 2 success
+    // Query char matches a secret char in a different position
+    case2true:
+        // Add 1 to case2 counter
+        ADD R1, R1, #1
+        // go back to case 2 start
+        B case2loopback
+
+    // Loop back to main
+    charQueryEnd:
+        // Add 4 to main index
+        ADD R7, R7, #4
+        // Have we hit end of loop?
+        CMP R7, R3
+        // if not, loop back to start of char checks
+        BLT case1start
+        // if loop complete, display char check info
+        B guessfeedback
 ```
 
-![Stage 5a: Functional Screenshot](./img/stage5a.png){width="600"}
+![Stage 5a: Screenshot showing 2 exact matches and 2 colour matches](./img/stage5a.png){width="600"}
 
 ### Stage 5b (`stage5b.txt`)
 
